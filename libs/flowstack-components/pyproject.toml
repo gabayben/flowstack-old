@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "flowstack-components"
+version = "0.1.0"
+description = ""
+authors = ["bensg <gabay67890@gmail.com>"]
+packages = [{ include = "flowstack" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flowstack = { path = "../../flowstack/" }
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

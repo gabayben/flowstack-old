@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "flowstack"
+version = "0.1.0"
+description = ""
+authors = ["bensg <gabay67890@gmail.com>"]
+packages = [{ include = "flowstack" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pydantic = "^2.8.2"
+unsync = "^1.4.0"
+jinja2 = "^3.1.4"
+tenacity = "^8.5.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
