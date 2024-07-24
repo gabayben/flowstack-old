@@ -6,4 +6,8 @@ from .errors import (
     EmptyInputError
 )
 
+from .typing import (
+    Send
+)
+
 from .channels import *
