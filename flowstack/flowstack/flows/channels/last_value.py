@@ -1,5 +1,5 @@
 """
-Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/ephemeral_value.py
+Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/channels/last_value.py
 """
 
 from contextlib import contextmanager
@@ -7,9 +7,9 @@ from typing import Generator, Optional, Self, Sequence, Type
 
 from flowstack.flows import Channel, EmptyChannelError, InvalidUpdateError
 
-class EphemeralValue[Value](Channel[Value, Value, Value]):
+class LastValue[Value](Channel[Value, Value, Value]):
     """
-    Stores the value received in the step immediately preceding, clears after.
+    Stores the last value received, can receive at most one value per step.
     """
 
     value: Value
@@ -22,13 +22,12 @@ class EphemeralValue[Value](Channel[Value, Value, Value]):
     def UpdateType(self) -> Type[Value]:
         return self._type
 
-    def __init__(self, type_: Type[Value], guard: bool = True):
+    def __init__(self, type_: Type[Value]):
         self._type = type_
-        self._guard = guard
 
     @contextmanager
     def from_checkpoint(self, state: Optional[Value], **kwargs) -> Generator[Self, None, None]:
-        channel = self.__class__(self._type, self._guard)
+        channel = self.__class__(self._type)
         if state is not None:
             channel.value = state
         try:
@@ -50,14 +49,13 @@ class EphemeralValue[Value](Channel[Value, Value, Value]):
 
     def update(self, values: Sequence[Value]) -> bool:
         if len(values) == 0:
-            try:
-                del self.value
-                return True
-            except AttributeError:
-                raise False
-        if len(values) != 1 and self._guard:
+            return False
+        if len(values) != 1:
             raise InvalidUpdateError(
-                'EphemeralValue cannot only receive one value per step.'
+                'LastValue can only receive one value per step.'
             )
         self.value = values[-1]
         return True
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, LastValue)

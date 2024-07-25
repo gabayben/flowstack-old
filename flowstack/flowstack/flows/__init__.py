@@ -11,8 +11,8 @@ from .typing import (
     Send
 )
 
-from .channels import *
 from .checkpoints import *
+from .channels import *
 from .managed import *
 from .pregel import *
 from .builders import *
