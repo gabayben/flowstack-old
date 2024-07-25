@@ -33,9 +33,9 @@ class FewShotExamples[Value](ManagedValue[Sequence[Value]]):
         self._limit = limit
         self._metadata_filter: _MetadataFilter = metadata_filter or {}
 
-    @override
     @classmethod
     @contextmanager
+    @override
     def enter(cls, graph: 'Pregel', **kwargs) -> Generator[Self, None, None]:
         with super().enter(graph, **kwargs) as value:
             value.examples = list(value.iter())
@@ -57,9 +57,9 @@ class FewShotExamples[Value](ManagedValue[Sequence[Value]]):
                 ) as channels:
                     yield read_channels(channels, self.graph.output_channels)
 
-    @override
     @classmethod
     @asynccontextmanager
+    @override
     async def aenter(cls, graph: 'Pregel', **kwargs) -> AsyncGenerator[Self, None, None]:
         async with super().aenter(graph, **kwargs) as value:
             value.examples = [chunk async for chunk in value.aiter()]
