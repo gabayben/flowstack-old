@@ -13,11 +13,11 @@ class NamedBarrierValue[Value](Channel[Value, Value, set[Value]]):
     """
 
     @property
-    def ValueType(self) -> Value:
+    def ValueType(self) -> Type[Value]:
         return self._type
 
     @property
-    def UpdateType(self) -> Value:
+    def UpdateType(self) -> Type[Value]:
         return self._type
 
     def __init__(self, type_: Type[Value], names: set[Value]):
@@ -60,3 +60,6 @@ class NamedBarrierValue[Value](Channel[Value, Value, set[Value]]):
             self._seen = set()
             return True
         return False
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, NamedBarrierValue) and self._names == other._names
