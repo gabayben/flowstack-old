@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 import asyncio
 from typing import Any, AsyncIterator, Callable, Coroutine, Iterator, Optional, Union, final
 
-from flowstack.typing import Addable
 from flowstack.utils.func import tpartial, tzip
 from flowstack.utils.threading import get_executor, run_async, run_async_iter, run_sync, run_sync_iter
 
@@ -94,24 +93,10 @@ class Effects:
 
     @final
     class Iterator[Out](Effect[Out]):
-        def __init__(
-            self,
-            func: Callable[[], Iterator[Out]],
-            add_values: bool | None = None,
-            return_last: bool | None = None
-        ):
+        def __init__(self, func: Callable[[], Iterator[Out]]):
             self.func = func
-            self.add_values = add_values if add_values is not None else True
-            self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:
-            if self.add_values and issubclass(type(Out), Addable):
-                current = next(self.iter())
-                for value in self.iter():
-                    current += value
-                return current
-            if not self.return_last:
-                return next(self.iter())
             values = list(self.iter())
             return values[-1] if values else None
 
@@ -122,45 +107,34 @@ class Effects:
             yield from self.func()
 
         async def aiter(self) -> AsyncIterator[Out]:
-            async for item in run_async_iter(self.iter):
-                yield item
+            async for chunk in run_async_iter(self.iter):
+                yield chunk
 
     @final
     class AsyncIterator[Out](Effect[Out]):
         def __init__(
             self,
             func: Callable[[], AsyncIterator[Out]],
-            max_workers: int | None = None,
-            add_values: bool | None = None,
-            return_last: bool | None = None
+            max_workers: int | None = None
         ):
             self.func = func
             self.max_workers = max_workers
-            self.add_values = add_values if add_values is not None else True
-            self.return_last = return_last if return_last is not None else True
 
         def invoke(self) -> Out:
             return run_sync(self.ainvoke(), max_workers=self.max_workers)
 
         async def ainvoke(self) -> Out:
-            if self.add_values and issubclass(type(Out), Addable):
-                current = await anext(self.aiter())
-                async for item in self.aiter():
-                    current += item
-                return current
-            if not self.return_last:
-                return await anext(self.aiter())
             last_value: Out = None
-            async for item in self.aiter():
-                last_value = item
+            async for chunk in self.aiter():
+                last_value = chunk
             return last_value
 
         def iter(self) -> Iterator[Out]:
             yield from run_sync_iter(self.aiter)
 
         async def aiter(self) -> AsyncIterator[Out]:
-            async for item in self.func():
-                yield item
+            async for chunk in self.func():
+                yield chunk
 
     @final
     class From[Out](Effect[Out]):
