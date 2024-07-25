@@ -22,13 +22,6 @@ class Channel[Value, Update, C](ABC):
         """
 
     @abstractmethod
-    def checkpoint(self) -> C:
-        """
-        Return a serializable representation of the channel's current state.
-        Raises EmptyChannelError if the channel is empty (never updated yet), or doesn't support checkpoints.
-        """
-
-    @abstractmethod
     @contextmanager
     def from_checkpoint(
         self,
@@ -52,6 +45,13 @@ class Channel[Value, Update, C](ABC):
         """
         with self.from_checkpoint(state, **kwargs) as channel:
             yield channel
+
+    @abstractmethod
+    def checkpoint(self) -> C:
+        """
+        Return a serializable representation of the channel's current state.
+        Raises EmptyChannelError if the channel is empty (never updated yet), or doesn't support checkpoints.
+        """
 
     @abstractmethod
     def get(self) -> Value:
