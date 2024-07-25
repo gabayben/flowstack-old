@@ -89,3 +89,10 @@ class ContextValue[Value](Channel[Value, None, None]):
         if values:
             raise InvalidUpdateError('ContextValue does not accept writes.')
         return False
+
+    def __eq__(self, other: object) -> bool:
+        return (
+            isinstance(other, ContextValue) and
+            self._manager == other._manager and
+            self._async_manager == other._async_manager
+        )
