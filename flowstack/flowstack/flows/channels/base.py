@@ -47,14 +47,14 @@ class Channel[Value, Update, C](ABC):
             yield channel
 
     @abstractmethod
-    def checkpoint(self) -> C:
+    def checkpoint(self) -> Optional[C]:
         """
         Return a serializable representation of the channel's current state.
         Raises EmptyChannelError if the channel is empty (never updated yet), or doesn't support checkpoints.
         """
 
     @abstractmethod
-    def get(self) -> Value:
+    def get(self) -> Optional[Value]:
         """
         Return the current value of the channel.
         Raises EmptyChannelError if the channel is empty (never updated yet).
