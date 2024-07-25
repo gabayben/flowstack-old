@@ -1,4 +1,6 @@
-from typing import Any
+from typing import Any, Union
+
+ChannelVersion = Union[int, float, str]
 
 class Send:
     """A message or packet to send to a specific node in the graph.
