@@ -38,13 +38,13 @@ class AnyValue[Value](Channel[Value, Value, Value]):
             except AttributeError:
                 pass
 
-    def checkpoint(self) -> Optional[Value]:
+    def checkpoint(self) -> Value:
         try:
             return self.value
         except AttributeError:
             return EmptyChannelError()
 
-    def get(self) -> Optional[Value]:
+    def get(self) -> Value:
         return self.checkpoint()
 
     def update(self, values: Sequence[Value]) -> bool:

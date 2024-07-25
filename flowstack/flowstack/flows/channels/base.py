@@ -23,22 +23,14 @@ class Channel[Value, Update, State](ABC):
 
     @abstractmethod
     @contextmanager
-    def from_checkpoint(
-        self,
-        state: Optional[State],
-        **kwargs
-    ) -> Generator[Self, None, None]:
+    def from_checkpoint(self, state: Optional[State], **kwargs) -> Generator[Self, None, None]:
         """
         Return a new identical channel, optionally initialized from a checkpoint state.
         If the checkpoint state contains complex data structures, they should be copied.
         """
 
     @asynccontextmanager
-    async def afrom_checkpoint(
-        self,
-        state: Optional[State],
-        **kwargs
-    ) -> AsyncGenerator[Self, None, None]:
+    async def afrom_checkpoint(self, state: Optional[State], **kwargs) -> AsyncGenerator[Self, None, None]:
         """
         Return a new identical channel, optionally initialized from a checkpoint state.
         If the checkpoint state contains complex data structures, they should be copied.
