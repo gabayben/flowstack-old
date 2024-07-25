@@ -5,4 +5,5 @@ from .base import (
     ManagedValueManager,
     AsyncManagedValueManager
 )
+from .few_shot import FewShotExamples
 from .is_last_step import IsLastStepValue, IsLastStep

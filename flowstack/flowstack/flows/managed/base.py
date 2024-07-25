@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import asyncio
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextmanager
 import inspect
-from typing import Any, AsyncGenerator, Generator, NamedTuple, TYPE_CHECKING, Type, TypeGuard, Union
+from typing import Any, AsyncGenerator, Generator, NamedTuple, Self, TYPE_CHECKING, Type, TypeGuard, Union
 
 from flowstack.flows import PregelTaskDescription
 
@@ -20,7 +20,7 @@ class ManagedValue[Value](ABC):
 
     @contextmanager
     @classmethod
-    def enter(cls, graph: 'Pregel', **kwargs) -> Generator['ManagedValue[Value]', None, None]:
+    def enter(cls, graph: 'Pregel', **kwargs) -> Generator[Self, None, None]:
         try:
             value = cls(graph, **kwargs)
             yield value
@@ -32,7 +32,7 @@ class ManagedValue[Value](ABC):
 
     @asynccontextmanager
     @classmethod
-    async def aenter(cls, graph: 'Pregel', **kwargs) -> AsyncGenerator['ManagedValue[Value]', None, None]:
+    async def aenter(cls, graph: 'Pregel', **kwargs) -> AsyncGenerator[Self, None, None]:
         try:
             value = cls(graph, **kwargs)
             yield value
