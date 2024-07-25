@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncGenerator, Generator, Optional, Self, Sequence
 
-class Channel[Value, Update, C](ABC):
+class Channel[Value, Update, State](ABC):
     @property
     @abstractmethod
     def ValueType(self) -> Any:
@@ -25,7 +25,7 @@ class Channel[Value, Update, C](ABC):
     @contextmanager
     def from_checkpoint(
         self,
-        state: Optional[C],
+        state: Optional[State],
         **kwargs
     ) -> Generator[Self, None, None]:
         """
@@ -36,7 +36,7 @@ class Channel[Value, Update, C](ABC):
     @asynccontextmanager
     async def afrom_checkpoint(
         self,
-        state: Optional[C],
+        state: Optional[State],
         **kwargs
     ) -> AsyncGenerator[Self, None, None]:
         """
@@ -47,7 +47,7 @@ class Channel[Value, Update, C](ABC):
             yield channel
 
     @abstractmethod
-    def checkpoint(self) -> Optional[C]:
+    def checkpoint(self) -> Optional[State]:
         """
         Return a serializable representation of the channel's current state.
         Raises EmptyChannelError if the channel is empty (never updated yet), or doesn't support checkpoints.
