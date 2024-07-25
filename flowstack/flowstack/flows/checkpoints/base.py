@@ -148,19 +148,7 @@ class Checkpointer(ABC):
         self.serde = serde or JsonPlusSerializer()
 
     @abstractmethod
-    def get(self, **kwargs) -> Optional[CheckpointTuple]:
-        """
-        Fetch a checkpoint.
-        """
-
-    @abstractmethod
-    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
-        """
-        Fetch a checkpoint.
-        """
-
-    @abstractmethod
-    def search(
+    def get_many(
         self,
         filters: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
@@ -182,7 +170,7 @@ class Checkpointer(ABC):
         """
 
     @abstractmethod
-    async def asearch(
+    async def aget_many(
         self,
         filters: Optional[dict[str, Any]] = None,
         limit: Optional[int] = None,
@@ -201,6 +189,18 @@ class Checkpointer(ABC):
 
         Raises:
             NotImplementedError: Implement this method in your custom checkpoint saver.
+        """
+
+    @abstractmethod
+    def get(self, **kwargs) -> Optional[CheckpointTuple]:
+        """
+        Fetch a checkpoint.
+        """
+
+    @abstractmethod
+    async def aget(self, **kwargs) -> Optional[CheckpointTuple]:
+        """
+        Fetch a checkpoint.
         """
 
     @abstractmethod
