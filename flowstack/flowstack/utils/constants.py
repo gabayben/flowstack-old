@@ -13,6 +13,4 @@ GRAPH_SOURCE_REL = "SOURCE"
 
 DATETIMETZ_FORMAT = "%Y-%m-%dT%H:%M:%S%z"
 
-DEPENDENCY = '__dependency__'
-BINDING = '__binding__'
-DEFERRED = '__deferred__'
+RECURSION_LIMIT = 'recursion_limit'
