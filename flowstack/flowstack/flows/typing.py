@@ -1,6 +1,67 @@
-from typing import Any, Union
+"""
+Credit to LangGraph -
+https://github.com/langchain-ai/langgraph/tree/main/langgraph/pregel/types.py
+https://github.com/langchain-ai/langgraph/tree/main/langgraph/constants.py
+"""
 
+from collections import deque
+from typing import Any, Literal, NamedTuple, Optional, TYPE_CHECKING, Union
+
+from flowstack.core import Component
+
+if TYPE_CHECKING:
+    from flowstack.flows.checkpoints.base import CheckpointMetadata
+
+PregelData = Union[Any, dict[str, Any]]
 ChannelVersion = Union[int, float, str]
+All = Literal['*']
+
+StreamMode = Literal['values', 'updates', 'debug']
+"""
+How the stream method should emit outputs.
+
+- 'values': Emit all values of the state for each step.
+- 'updates': Emit only the node name(s) and updates that were returned by the node(s) **after** each step.
+- 'debug': Emit debug events for each step.
+"""
+
+class RetryPolicy(NamedTuple):
+    """
+    Configuration for retrying nodes.
+    """
+
+class PregelTaskDescription(NamedTuple):
+    name: str
+    input: Any
+
+class PregelExecutableTask(NamedTuple):
+    name: str
+    input: Any
+    process: Component
+    writes: deque[tuple[str, Any]]
+    trigger: list[str]
+    id: str
+    config: dict[str, Any]
+    retry_policy: Optional[RetryPolicy] = None
+
+class StateSnapshot(NamedTuple):
+    values: PregelData
+    """Current values of channels."""
+
+    next: tuple[str]
+    """Nodes to execute in the next step, if any."""
+
+    metadata: 'CheckpointMetadata'
+    """Metadata associated with this snapshot."""
+
+    created_at: Optional[str]
+    """Timestamp of snapshot creation."""
+
+    config: dict[str, Any]
+    """Config used to fetch this snapshot."""
+
+    parent_config: Optional[dict[str, Any]] = None
+    """Config used to fetch the parent snapshot, if any."""
 
 class Send:
     """A message or packet to send to a specific node in the graph.

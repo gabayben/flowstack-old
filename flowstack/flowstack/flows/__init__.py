@@ -8,6 +8,13 @@ from .errors import (
 
 from .typing import (
     ChannelVersion,
+    PregelData,
+    All,
+    StreamMode,
+    RetryPolicy,
+    PregelTaskDescription,
+    PregelExecutableTask,
+    StateSnapshot,
     Send
 )
 
