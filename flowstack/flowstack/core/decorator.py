@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Any, Optional, Type, TypeVar, override
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from flowstack.core import Component, SerializableComponent
 from flowstack.typing import CallableType, ReturnType
@@ -11,7 +11,7 @@ _Output = TypeVar('_Output')
 
 class DecoratorBase(SerializableComponent[_Input, _Output]):
     bound: Component[_Input, _Output]
-    kwargs: dict[str, Any]
+    kwargs: dict[str, Any] = Field(default_factory=dict)
     custom_input_schema: Optional[Type[BaseModel]] = None
     custom_output_schema: Optional[Type[BaseModel]] = None
 

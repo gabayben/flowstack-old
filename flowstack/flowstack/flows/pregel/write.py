@@ -30,9 +30,9 @@ class ChannelWrite(Component):
         required_channels: Optional[Sequence[str]] = None,
         tags: Optional[list[str]] = None
     ):
-        self._writes = writes
-        self._required_channels = required_channels
-        self._tags = tags
+        self.writes = writes
+        self.required_channels = required_channels
+        self.tags = tags
 
     def run(self, input: Any, **kwargs) -> Effect[Any]:
         return Effects.From(
@@ -41,8 +41,8 @@ class ChannelWrite(Component):
         )
 
     def _write(self, input: Any, **kwargs) -> Any:
-        packets = [(TASKS, packet) for packet in self._writes if isinstance(packet, Send)]
-        entries = [entry for entry in self._writes if isinstance(entry, ChannelWriteEntry)]
+        packets = [(TASKS, packet) for packet in self.writes if isinstance(packet, Send)]
+        entries = [entry for entry in self.writes if isinstance(entry, ChannelWriteEntry)]
         for entry in entries:
             if entry.channel is TASKS:
                 raise InvalidUpdateError(f'Cannot write to the reserved channel {TASKS}')
@@ -58,14 +58,14 @@ class ChannelWrite(Component):
         ]
         self.do_write(
             values + packets,
-            required_channels=self._required_channels if input is not None else None,
+            required_channels=self.required_channels if input is not None else None,
             **kwargs
         )
         return input
 
     async def _awrite(self, input: Any, **kwargs) -> Any:
-        packets = [(TASKS, packet) for packet in self._writes if isinstance(packet, Send)]
-        entries = [entry for entry in self._writes if isinstance(entry, ChannelWriteEntry)]
+        packets = [(TASKS, packet) for packet in self.writes if isinstance(packet, Send)]
+        entries = [entry for entry in self.writes if isinstance(entry, ChannelWriteEntry)]
         for entry in entries:
             if entry.channel is TASKS:
                 raise InvalidUpdateError(f'Cannot write to the reserved channel {TASKS}')
@@ -85,7 +85,7 @@ class ChannelWrite(Component):
         ]
         self.do_write(
             values + packets,
-            required_channels=self._required_channels if input is not None else None,
+            required_channels=self.required_channels if input is not None else None,
             **kwargs
         )
         return input

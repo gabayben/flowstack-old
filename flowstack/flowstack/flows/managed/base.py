@@ -11,7 +11,7 @@ from typing import Any, AsyncGenerator, Generator, NamedTuple, Self, TYPE_CHECKI
 from flowstack.flows import PregelTaskDescription
 
 if TYPE_CHECKING:
-    from flowstack.flows.pregel.base import Pregel
+    from flowstack.flows.pregel.graph import Pregel
 
 class ManagedValue[Value](ABC):
     def __init__(self, graph: 'Pregel', **config):

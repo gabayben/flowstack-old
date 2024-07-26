@@ -9,7 +9,7 @@ from flowstack.flows import AsyncChannelManager, ChannelManager, ConfiguredManag
 from flowstack.flows.channels.utils import read_channels
 
 if TYPE_CHECKING:
-    from flowstack.flows.pregel.base import Pregel
+    from flowstack.flows.pregel.graph import Pregel
 
 _MetadataFilter = Union[dict[str, Any], Callable[[dict[str, Any]], dict[str, Any]]]
 
