@@ -2,12 +2,15 @@
 Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/pregel/algo.py
 """
 
+import logging
 from typing import Any, Callable, Mapping, NamedTuple, Optional, Protocol, Sequence, Union
 
-from flowstack.flows import All, Channel, ChannelManager, Checkpoint, ContextValue, PregelExecutableTask
+from flowstack.flows import All, Channel, ChannelManager, Checkpoint, ContextValue, InvalidUpdateError, PregelExecutableTask, PregelNode, Send
 from flowstack.flows.channels.utils import read_channels
 from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
-from flowstack.flows.constants import HIDDEN, INTERRUPT
+from flowstack.flows.constants import HIDDEN, INTERRUPT, TASKS
+
+logger = logging.getLogger(__name__)
 
 class WritesProtocol(Protocol):
     name: str
@@ -45,6 +48,9 @@ def should_interrupt(
         )
     )
 
+def increment(current: Optional[int]) -> int:
+    raise current + 1 if current is not None else 1
+
 def apply_writes(
     checkpoint: Checkpoint,
     channels: Mapping[str, Channel],
@@ -73,3 +79,21 @@ def local_read(
             apply_writes(new_checkpoint, all_channels, [task])
             return read_channels(all_channels, select)
     return read_channels(channels, select)
+
+def local_write(
+    commit: Callable[[Sequence[tuple[str, Any]]], None],
+    processes: Mapping[str, PregelNode],
+    channels: Mapping[str, Channel],
+    writes: Sequence[tuple[str, Any]]
+) -> None:
+    for chan, value in writes:
+        if chan == TASKS:
+            if not isinstance(value, Send):
+                raise InvalidUpdateError(
+                    f'Invalid packet type, expected Send, got {value}.'
+                )
+            if value.node not in processes:
+                raise InvalidUpdateError(f'Invalid node name {value.node} in packet.')
+        elif chan not in channels:
+            logger.warning(f'Skipping write for channel {chan} which has no readers.')
+    commit(writes)
