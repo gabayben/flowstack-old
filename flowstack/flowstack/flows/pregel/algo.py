@@ -13,23 +13,15 @@ from flowstack.flows import (
     All,
     Channel,
     ChannelManager,
-    ChannelVersion,
-    Checkpoint,
-    Checkpointer,
-    ContextValue,
-    EmptyChannelError,
-    InvalidUpdateError,
-    ManagedValue,
-    PregelExecutableTask,
-    PregelNode,
-    PregelTaskDescription,
-    PregelTaskMetadata,
-    Send
+    ChannelVersion, Checkpoint,
+    Checkpointer, ContextValue,
+    EmptyChannelError, InvalidUpdateError,
+    PregelExecutableTask, PregelNode, PregelTaskDescription, PregelTaskMetadata, Send
 )
 from flowstack.flows.channels.utils import read_channel, read_channels
 from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
 from flowstack.flows.constants import HIDDEN, INTERRUPT, READ_KEY, RESERVED, TASKS, WRITE_KEY
-from flowstack.flows.managed.base import is_managed_value
+from flowstack.flows.managed.base import ManagedValue, is_managed_value
 
 logger = logging.getLogger(__name__)
 

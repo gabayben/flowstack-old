@@ -69,7 +69,7 @@ async def gather_with_concurrency[T](n: Optional[int], *coros: Coroutine[Any, An
     ))
 
 @contextmanager
-def get_executor(max_workers: Optional[int] = None) -> Generator[Executor, None, None]:
+def get_executor(max_workers: Optional[int] = None, ) -> Generator[Executor, None, None]:
     """Get an executor for a config.
 
     Yields:
