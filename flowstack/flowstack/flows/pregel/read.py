@@ -9,7 +9,7 @@ from flowstack.flows.constants import READ_KEY
 
 READ_TYPE = Callable[[Union[str, Sequence[str]], bool], Union[Any, dict[str, Any]]]
 
-class ChannelRead(Component):
+class ChannelRead(Component[Any, Union[str, dict[str, Any]]]):
     def __init__(
         self,
         channels: Union[str, Sequence[str]],
@@ -23,7 +23,7 @@ class ChannelRead(Component):
         self._tags = tags
         self._fresh = fresh
 
-    def run(self, _: Any, **kwargs) -> Any:
+    def run(self, _: Any, **kwargs) -> Union[str, dict[str, Any]]:
         return self.do_read(
             self._channels,
             mapper=self._mapper,
@@ -38,7 +38,7 @@ class ChannelRead(Component):
         mapper: Optional[Callable[[Any], Any]] = None,
         fresh: bool = False,
         **config
-    ) -> Any:
+    ) -> Union[Any, dict[str, Any]]:
         try:
             read: READ_TYPE = config[READ_KEY]
         except KeyError:

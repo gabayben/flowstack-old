@@ -46,7 +46,7 @@ class PregelNode(DecoratorBase):
     def __or__(self, other: ComponentLike[Any, Any]) -> 'PregelNode':
         if ChannelWrite.is_writer(other):
             return self.model_copy(update=dict(writers=[*self.writers, other]))
-        elif other is DEFAULT_BOUND:
+        elif self.bound is DEFAULT_BOUND:
             return self.model_copy(update=dict(bound=other))
         return self.model_copy(update=dict(bound=self.bound | other))
 
