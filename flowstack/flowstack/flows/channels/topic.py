@@ -5,7 +5,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from contextlib import contextmanager
 from typing import Generator, Iterator, Optional, Self, Sequence, Type, Union
 
-from flowstack.flows import Channel, EmptyChannelError
+from flowstack.flows.channels import Channel
+from flowstack.flows.errors import EmptyChannelError
 
 type _Update[Value] = Union[Value, list[Value]]
 type _State[Value] = tuple[set[Value], list[Value]]

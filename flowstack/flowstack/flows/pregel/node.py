@@ -7,7 +7,9 @@ from typing import Any, Callable, Mapping, Optional, Sequence, Union, override
 from pydantic import Field
 
 from flowstack.core import Component, ComponentLike, DecoratorBase, Passthrough, Sequential
-from flowstack.flows import ChannelWrite, ManagedValueSpec, RetryPolicy
+from flowstack.flows.managed import ManagedValueSpec
+from flowstack.flows.pregel import ChannelWrite
+from flowstack.flows.typing import RetryPolicy
 
 DEFAULT_BOUND = Passthrough()
 

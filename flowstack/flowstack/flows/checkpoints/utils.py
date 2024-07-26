@@ -9,7 +9,8 @@ from typing import Any, Mapping, Optional, TYPE_CHECKING
 
 from uuid6 import uuid6
 
-from flowstack.flows import Checkpoint, EmptyChannelError
+from flowstack.flows.checkpoints import Checkpoint
+from flowstack.flows.errors import EmptyChannelError
 
 if TYPE_CHECKING:
     from flowstack.flows.channels.base import Channel

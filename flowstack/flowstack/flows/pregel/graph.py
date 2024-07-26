@@ -8,7 +8,9 @@ from typing import AsyncIterator, Iterator, Mapping, Optional, Sequence, Union, 
 from pydantic import Field
 
 from flowstack.core import SerializableComponent
-from flowstack.flows import Channel, Checkpointer, PregelData, StreamMode
+from flowstack.flows.channels import Channel
+from flowstack.flows.checkpoints import Checkpointer
+from flowstack.flows.typing import PregelData, StreamMode
 from flowstack.typing import Effect, Effects
 
 class Pregel(SerializableComponent[PregelData, PregelData]):

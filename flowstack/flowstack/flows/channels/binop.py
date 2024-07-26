@@ -6,7 +6,8 @@ import collections.abc
 from contextlib import contextmanager
 from typing import Callable, Generator, NotRequired, Optional, Required, Self, Sequence, Type
 
-from flowstack.flows import Channel, EmptyChannelError
+from flowstack.flows.channels import Channel
+from flowstack.flows.errors import EmptyChannelError
 
 class BinaryOperatorAggregate[Value](Channel[Value, Value, Value]):
     """

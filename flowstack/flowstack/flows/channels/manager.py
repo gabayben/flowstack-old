@@ -5,7 +5,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextmanager
 from typing import AsyncGenerator, Generator, Mapping
 
-from flowstack.flows import Channel, Checkpoint
+from flowstack.flows.channels import Channel
+from flowstack.flows.checkpoints import Checkpoint
 
 @contextmanager
 def ChannelManager(

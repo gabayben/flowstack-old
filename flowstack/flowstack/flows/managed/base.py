@@ -8,7 +8,7 @@ from contextlib import AsyncExitStack, ExitStack, asynccontextmanager, contextma
 import inspect
 from typing import Any, AsyncGenerator, Generator, NamedTuple, Self, TYPE_CHECKING, Type, TypeGuard, Union
 
-from flowstack.flows import PregelTaskDescription
+from flowstack.flows.typing import PregelTaskDescription
 
 if TYPE_CHECKING:
     from flowstack.flows.pregel.graph import Pregel

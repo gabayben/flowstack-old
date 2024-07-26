@@ -15,7 +15,9 @@ from typing import Any, AsyncIterator, Iterator, Optional, Self, Sequence, Type,
 
 import aiosqlite
 
-from flowstack.flows import Channel, Checkpoint, CheckpointMetadata, CheckpointTuple, Checkpointer, EmptyChannelError
+from flowstack.flows.channels import Channel
+from flowstack.flows.checkpoints import Checkpoint, CheckpointMetadata, CheckpointTuple, Checkpointer
+from flowstack.flows.errors import EmptyChannelError
 from flowstack.flows.serde import Serializer
 
 SETUP_SCRIPT = """

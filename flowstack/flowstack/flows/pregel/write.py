@@ -7,8 +7,9 @@ from functools import partial
 from typing import Any, Callable, NamedTuple, Optional, Sequence, Union
 
 from flowstack.core import Component
-from flowstack.flows import InvalidUpdateError, Send
 from flowstack.flows.constants import IS_CHANNEL_WRITER, TASKS
+from flowstack.flows.errors import InvalidUpdateError
+from flowstack.flows.typing import Send
 from flowstack.typing import Effect, Effects
 from flowstack.utils.func import tzip
 

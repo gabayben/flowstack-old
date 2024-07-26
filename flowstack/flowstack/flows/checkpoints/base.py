@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
 from typing import Any, AsyncIterator, Iterator, Literal, NamedTuple, Optional, TypeVar, TypedDict
 
-from flowstack.flows import Channel, ChannelVersion, Send
+from flowstack.flows.channels import Channel
 from flowstack.flows.serde import JsonPlusSerializer, Serializer
+from flowstack.flows.typing import ChannelVersion, Send
 
 _V = TypeVar('_V', int, float, str)
 PendingWrite = tuple[str, str, Any]

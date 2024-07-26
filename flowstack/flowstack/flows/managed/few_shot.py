@@ -5,8 +5,10 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from contextlib import asynccontextmanager, contextmanager
 from typing import Any, AsyncGenerator, AsyncIterator, Callable, Generator, Iterator, Optional, Self, Sequence, TYPE_CHECKING, Union, override
 
-from flowstack.flows import AsyncChannelManager, ChannelManager, ConfiguredManagedValue, ManagedValue, PregelTaskDescription
+from flowstack.flows.channels import AsyncChannelManager, ChannelManager
 from flowstack.flows.channels.utils import read_channels
+from flowstack.flows.managed import ConfiguredManagedValue, ManagedValue
+from flowstack.flows.typing import PregelTaskDescription
 
 if TYPE_CHECKING:
     from flowstack.flows.pregel.graph import Pregel

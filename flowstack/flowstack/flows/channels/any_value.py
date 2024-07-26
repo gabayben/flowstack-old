@@ -5,7 +5,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from contextlib import contextmanager
 from typing import Generator, Optional, Self, Sequence, Type
 
-from flowstack.flows import Channel, EmptyChannelError
+from flowstack.flows.channels import Channel
+from flowstack.flows.errors import EmptyChannelError
 
 class AnyValue[Value](Channel[Value, Value, Value]):
     """

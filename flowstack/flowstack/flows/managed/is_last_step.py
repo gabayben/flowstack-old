@@ -4,7 +4,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 
 from typing import Annotated
 
-from flowstack.flows import ManagedValue, PregelTaskDescription
+from flowstack.flows.managed import ManagedValue
+from flowstack.flows.typing import PregelTaskDescription
 from flowstack.utils.constants import RECURSION_LIMIT
 
 class IsLastStepValue(ManagedValue[bool]):

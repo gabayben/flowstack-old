@@ -4,7 +4,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 
 from typing import Any, Mapping, Optional, Sequence, Union
 
-from flowstack.flows import Channel, EmptyChannelError
+from flowstack.flows.channels import Channel
+from flowstack.flows.errors import EmptyChannelError
 
 def read_channel(
     channels: Mapping[str, Channel],

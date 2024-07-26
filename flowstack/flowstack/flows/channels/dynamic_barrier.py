@@ -5,7 +5,8 @@ Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgr
 from contextlib import contextmanager
 from typing import Generator, NamedTuple, Optional, Self, Sequence, Type, Union, override
 
-from flowstack.flows import Channel, EmptyChannelError, InvalidUpdateError
+from flowstack.flows.channels import Channel
+from flowstack.flows.errors import EmptyChannelError, InvalidUpdateError
 
 class WaitForNames[Value](NamedTuple):
     names: set[Value]
