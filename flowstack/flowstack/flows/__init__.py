@@ -12,6 +12,7 @@ from .typing import (
     All,
     StreamMode,
     RetryPolicy,
+    PregelTaskMetadata,
     PregelTaskDescription,
     PregelExecutableTask,
     StateSnapshot,

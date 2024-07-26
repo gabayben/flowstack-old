@@ -2,13 +2,30 @@
 Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/pregel/algo.py
 """
 
+from collections import defaultdict
 import logging
-from typing import Any, Callable, Mapping, NamedTuple, Optional, Protocol, Sequence, Union
+from typing import Any, Callable, Iterator, Literal, Mapping, NamedTuple, Optional, Protocol, Sequence, Union, overload
 
-from flowstack.flows import All, Channel, ChannelManager, Checkpoint, ContextValue, InvalidUpdateError, PregelExecutableTask, PregelNode, Send
-from flowstack.flows.channels.utils import read_channels
+from flowstack.flows import (
+    All,
+    Channel,
+    ChannelManager,
+    ChannelVersion,
+    Checkpoint,
+    Checkpointer,
+    ContextValue,
+    EmptyChannelError,
+    InvalidUpdateError,
+    ManagedValue,
+    PregelExecutableTask,
+    PregelNode,
+    PregelTaskDescription,
+    PregelTaskMetadata, Send
+)
+from flowstack.flows.channels.utils import read_channel, read_channels
 from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
-from flowstack.flows.constants import HIDDEN, INTERRUPT, TASKS
+from flowstack.flows.constants import HIDDEN, INTERRUPT, RESERVED, TASKS
+from flowstack.flows.managed.base import is_managed_value
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +65,7 @@ def should_interrupt(
         )
     )
 
-def increment(current: Optional[int]) -> int:
+def increment(current: Optional[int], channel: Channel) -> int:
     raise current + 1 if current is not None else 1
 
 def apply_writes(
@@ -57,7 +74,63 @@ def apply_writes(
     tasks: Sequence[WritesProtocol],
     get_next_version: Optional[Callable[[int, Channel], int]] = None
 ) -> None:
-    pass
+    # update seen versions
+    for task in tasks:
+        checkpoint['versions_seen'].setdefault(task.name, {}).update({
+            chan: checkpoint['channels_versions'][chan]
+            for chan in task.triggers
+            if chan in checkpoint['channels_versions']
+        })
+
+    max_version = _highest_channel_version(checkpoint)
+
+    # consume all channels that were read
+    for chan in {
+        chan for task in tasks for chan in task.triggers if chan not in RESERVED
+    }:
+        if channels[chan].consume():
+            if get_next_version is not None:
+                checkpoint['channels_versions'][chan] = get_next_version(max_version, channels[chan])
+
+    # clear pending sends
+    if checkpoint['pending_sends']:
+        checkpoint['pending_sends'].clear()
+
+    # group writes by channel
+    pending_writes_by_channel: dict[str, list[Any]] = defaultdict(list)
+    for task in tasks:
+        for chan, value in task.writes:
+            if chan == TASKS:
+                checkpoint['pending_sends'].append(value)
+            else:
+                pending_writes_by_channel[chan].append(value)
+
+    max_version = _highest_channel_version(checkpoint)
+
+    # apply writes to channels
+    updated_channels: set[str] = set()
+    for chan, values in pending_writes_by_channel.items():
+        if chan in channels:
+            try:
+                updated = channels[chan].update(values)
+            except InvalidUpdateError as e:
+                raise InvalidUpdateError(
+                    f'Invalid update for channel {chan} with values {values}'
+                ) from e
+            if updated and get_next_version is not None:
+                checkpoint['channels_versions'][chan] = get_next_version(max_version, channels[chan])
+            updated_channels.add(chan)
+
+    # channels that weren't updated in this step are notified of a new step
+    for chan in channels:
+        if chan not in updated_channels:
+            if channels[chan].update([]) and get_next_version is not None:
+                checkpoint['channels_versions'][chan] = get_next_version(max_version, channels[chan])
+
+def _highest_channel_version(checkpoint: Checkpoint) -> Optional[ChannelVersion]:
+    if checkpoint['channels_versions']:
+        return max(checkpoint['channels_versions'].values())
+    return None
 
 def local_read(
     checkpoint: Checkpoint,
@@ -97,3 +170,103 @@ def local_write(
         elif chan not in channels:
             logger.warning(f'Skipping write for channel {chan} which has no readers.')
     commit(writes)
+
+@overload
+def prepare_next_tasks(
+    checkpoint: Checkpoint,
+    processes: Mapping[str, PregelNode],
+    channels: Mapping[str, Channel],
+    managed: dict[str, ManagedValue],
+    step: int,
+    for_execution: Literal[False],
+    is_resuming: bool = False,
+    checkpointer: Literal[None] = None,
+    **config
+) -> list[PregelTaskDescription]: ...
+
+@overload
+def prepare_next_tasks(
+    checkpoint: Checkpoint,
+    processes: Mapping[str, PregelNode],
+    channels: Mapping[str, Channel],
+    managed: dict[str, ManagedValue],
+    step: int,
+    for_execution: Literal[True],
+    is_resuming: bool,
+    checkpointer: Optional[Checkpointer],
+    **config
+) -> list[PregelExecutableTask]: ...
+
+def prepare_next_tasks(
+    checkpoint: Checkpoint,
+    processes: Mapping[str, PregelNode],
+    channels: Mapping[str, Channel],
+    managed: dict[str, ManagedValue],
+    step: int,
+    for_execution: bool,
+    is_resuming: bool = False,
+    checkpointer: Optional[Checkpointer] = None,
+    **config
+) -> Union[list[PregelTaskDescription], list[PregelExecutableTask]]:
+    tasks: list[Union[PregelTaskDescription, PregelExecutableTask]] = []
+
+    # consume pending packets
+    for packet in checkpoint['pending_sends']:
+        if not isinstance(packet, Send):
+            logger.warning(f'Ignoring invalid packet type {type(packet)} in pending sends.')
+            continue
+        if packet.node not in processes:
+            logger.warning(f'Ignoring unknown packet node {packet.node} in pending sends.')
+            continue
+
+        if for_execution:
+            process = processes[packet.node]
+            if node := process.get_node():
+                triggers = [TASKS]
+                metadata = PregelTaskMetadata(
+                    step=step,
+                    node=packet.node,
+                    triggers=triggers,
+                    task_idx=len(tasks)
+                )
+
+def _process_input(
+    step: int,
+    name: str,
+    process: PregelNode,
+    channels: Mapping[str, Channel],
+    managed: dict[str, ManagedValue]
+) -> Iterator[Any]:
+    # If all trigger channels subscribed by this process are not empty
+    # then invoke the process with the values of all non-empty channels
+    if isinstance(process.channels, dict):
+        try:
+            value = {
+                key: read_channel(channels, chan, catch=chan not in process.triggers)
+                for key, chan in process.channels.items()
+                if isinstance(chan, str)
+            }
+            managed_values = {}
+            for key, chan in process.channels.items():
+                if is_managed_value(chan):
+                    managed_values[key] = chan(step, PregelTaskDescription(name, value))
+            value.update(managed_values)
+        except EmptyChannelError:
+            return
+    elif isinstance(process.channels, list):
+        for chan in process.channels:
+            try:
+                value = read_channel(channels, chan, catch=False)
+            except EmptyChannelError:
+                pass
+        else:
+            return
+    else:
+        raise RuntimeError(
+            f'Invalid channels type for process. Expected list or dict, got {process.channels}.'
+        )
+
+    if process.mapper is not None:
+        value = process.mapper(value)
+
+    yield value

@@ -5,7 +5,7 @@ https://github.com/langchain-ai/langgraph/tree/main/langgraph/constants.py
 """
 
 from collections import deque
-from typing import Any, Literal, NamedTuple, Optional, TYPE_CHECKING, Union
+from typing import Any, Literal, NamedTuple, Optional, TYPE_CHECKING, TypedDict, Union
 
 from flowstack.core import Component
 
@@ -30,6 +30,12 @@ class RetryPolicy(NamedTuple):
     Configuration for retrying nodes.
     """
 
+class PregelTaskMetadata(TypedDict, total=False):
+    step: int
+    node: str
+    triggers: list[str]
+    task_idx: int
+
 class PregelTaskDescription(NamedTuple):
     name: str
     input: Any
@@ -41,6 +47,7 @@ class PregelExecutableTask(NamedTuple):
     writes: deque[tuple[str, Any]]
     trigger: list[str]
     id: str
+    metadata: PregelTaskMetadata
     config: dict[str, Any]
     retry_policy: Optional[RetryPolicy] = None
 
