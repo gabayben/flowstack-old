@@ -10,7 +10,7 @@ from typing import Any, Literal, NamedTuple, Optional, TYPE_CHECKING, TypedDict,
 from flowstack.core import Component
 
 if TYPE_CHECKING:
-    from flowstack.flows.checkpoints.base import CheckpointMetadata
+    from flowstack.flows.checkpoints.base import CheckpointMetadata, Checkpointer
 
 PregelData = Union[Any, dict[str, Any]]
 ChannelVersion = Union[int, float, str]
@@ -45,11 +45,13 @@ class PregelExecutableTask(NamedTuple):
     input: Any
     process: Component
     writes: deque[tuple[str, Any]]
-    trigger: list[str]
+    triggers: list[str]
     id: str
     metadata: PregelTaskMetadata
     config: dict[str, Any]
     retry_policy: Optional[RetryPolicy] = None
+    checkpointer: Optional[Checkpointer] = None
+    is_resuming: bool = False
 
 class StateSnapshot(NamedTuple):
     values: PregelData

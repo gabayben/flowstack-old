@@ -2,9 +2,12 @@
 Credit to LangGraph - https://github.com/langchain-ai/langgraph/tree/main/langgraph/pregel/algo.py
 """
 
-from collections import defaultdict
+from collections import defaultdict, deque
+from functools import partial
+import json
 import logging
 from typing import Any, Callable, Iterator, Literal, Mapping, NamedTuple, Optional, Protocol, Sequence, Union, overload
+from uuid import UUID, uuid5
 
 from flowstack.flows import (
     All,
@@ -20,11 +23,12 @@ from flowstack.flows import (
     PregelExecutableTask,
     PregelNode,
     PregelTaskDescription,
-    PregelTaskMetadata, Send
+    PregelTaskMetadata,
+    Send
 )
 from flowstack.flows.channels.utils import read_channel, read_channels
 from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
-from flowstack.flows.constants import HIDDEN, INTERRUPT, RESERVED, TASKS
+from flowstack.flows.constants import HIDDEN, INTERRUPT, READ_KEY, RESERVED, TASKS, WRITE_KEY
 from flowstack.flows.managed.base import is_managed_value
 
 logger = logging.getLogger(__name__)
@@ -44,8 +48,7 @@ def should_interrupt(
     interrupt_nodes: Union[All, Sequence[str]],
     tasks: list[PregelExecutableTask]
 ) -> bool:
-    version_type = type(next(iter(checkpoint['channels_versions'].values()), None))
-    null_version = version_type()
+    null_version = _get_null_version(checkpoint)
     seen = checkpoint['versions_seen'].get(INTERRUPT, {})
     return (
         # interrupt if any channel has been updated since last interrupt
@@ -82,7 +85,7 @@ def apply_writes(
             if chan in checkpoint['channels_versions']
         })
 
-    max_version = _highest_channel_version(checkpoint)
+    max_version = _get_max_version(checkpoint)
 
     # consume all channels that were read
     for chan in {
@@ -105,7 +108,7 @@ def apply_writes(
             else:
                 pending_writes_by_channel[chan].append(value)
 
-    max_version = _highest_channel_version(checkpoint)
+    max_version = _get_max_version(checkpoint)
 
     # apply writes to channels
     updated_channels: set[str] = set()
@@ -126,11 +129,6 @@ def apply_writes(
         if chan not in updated_channels:
             if channels[chan].update([]) and get_next_version is not None:
                 checkpoint['channels_versions'][chan] = get_next_version(max_version, channels[chan])
-
-def _highest_channel_version(checkpoint: Checkpoint) -> Optional[ChannelVersion]:
-    if checkpoint['channels_versions']:
-        return max(checkpoint['channels_versions'].values())
-    return None
 
 def local_read(
     checkpoint: Checkpoint,
@@ -209,6 +207,7 @@ def prepare_next_tasks(
     **config
 ) -> Union[list[PregelTaskDescription], list[PregelExecutableTask]]:
     tasks: list[Union[PregelTaskDescription, PregelExecutableTask]] = []
+    config.pop('fresh', None)
 
     # consume pending packets
     for packet in checkpoint['pending_sends']:
@@ -229,6 +228,110 @@ def prepare_next_tasks(
                     triggers=triggers,
                     task_idx=len(tasks)
                 )
+                task_id = _get_task_id(checkpoint['id'], metadata)
+                writes = deque()
+                tasks.append(PregelExecutableTask(
+                    name=packet.node,
+                    input=packet.arg,
+                    process=node,
+                    writes=writes,
+                    triggers=triggers,
+                    id=task_id,
+                    metadata=metadata,
+                    config={
+                        **config,
+                        **processes[packet.node].kwargs,
+                        WRITE_KEY: partial(
+                            local_write,
+                            writes.extend,
+                            processes,
+                            channels
+                        ),
+                        READ_KEY: partial(
+                            local_read,
+                            checkpoint,
+                            channels,
+                            PregelTaskWrites(packet.node, writes, triggers),
+                            **config
+                        )
+                    }
+                ))
+        else:
+            tasks.append(PregelTaskDescription(packet.node, packet.arg))
+
+    # Check if any processes should be run in next step
+    # If so, prepare the values to be passed to them
+    null_version = _get_null_version(checkpoint)
+    if null_version is None:
+        return tasks
+    for name, process in processes.items():
+        seen = checkpoint['versions_seen'].get(name, {})
+        # If any of the channels read by this process were updated
+        if triggers := sorted(
+            chan
+            for chan in process.triggers
+            if (
+                not isinstance(
+                    read_channel(channels, chan, return_exception=True), EmptyChannelError
+                ) and
+                checkpoint['channels_versions'].get(chan, null_version) > seen.get(chan, null_version)
+            )
+        ):
+            try:
+                value = next(_process_input(step, name, process, channels, managed))
+            except StopIteration:
+                continue
+
+            if for_execution:
+                if node := process.get_node():
+                    metadata = PregelTaskMetadata(
+                        step=step,
+                        node=name,
+                        triggers=triggers,
+                        task_idx=len(tasks)
+                    )
+                    task_id = _get_task_id(checkpoint['id'], metadata)
+                    if parent_thread_id := config.get('thread_id'):
+                        thread_id = f'{parent_thread_id}-{name}'
+                    else:
+                        thread_id = None
+                    writes = deque()
+                    tasks.append(PregelExecutableTask(
+                        name=name,
+                        input=value,
+                        process=node,
+                        writes=writes,
+                        triggers=triggers,
+                        id=task_id,
+                        metadata=metadata,
+                        retry_policy=process.retry_policy,
+                        checkpointer=checkpointer,
+                        is_resuming=is_resuming,
+                        config={
+                            **config,
+                            **process.kwargs,
+                            WRITE_KEY: partial(
+                                local_write,
+                                writes.extend,
+                                processes,
+                                channels,
+                                writes
+                            ),
+                            READ_KEY: partial(
+                                local_read,
+                                checkpoint,
+                                channels,
+                                PregelTaskWrites(name, writes, triggers),
+                                **config
+                            ),
+                            'thread_id': thread_id,
+                            'thread_ts': checkpoint['id']
+                        }
+                    ))
+            else:
+                tasks.append(PregelTaskDescription(name, value))
+
+    return tasks
 
 def _process_input(
     step: int,
@@ -270,3 +373,15 @@ def _process_input(
         value = process.mapper(value)
 
     yield value
+
+def _get_max_version(checkpoint: Checkpoint) -> Optional[ChannelVersion]:
+    if checkpoint['channels_versions']:
+        return max(checkpoint['channels_versions'].values())
+    return None
+
+def _get_null_version(checkpoint: Checkpoint) -> Any:
+    version_type = type(next(iter(checkpoint['channels_versions'].values()), None))
+    return version_type()
+
+def _get_task_id(id: str, metadata: dict) -> str:
+    return str(uuid5(UUID(id), json.dumps(metadata)))
