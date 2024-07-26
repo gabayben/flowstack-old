@@ -112,7 +112,7 @@ class CheckpointConfigSpec(TypedDict):
 class Checkpointer(ABC):
     """Base class for creating a flow checkpointer.
 
-    Checkpointers allow flows to persist their state
+    Checkpointers allow builders to persist their state
     within and across multiple interactions.
 
     Attributes:
