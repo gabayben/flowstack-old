@@ -10,5 +10,6 @@ from .types import (
     Addable
 )
 
+from .dicts import ModelDict, AddableDict
 from .models import Serializable
 from .effect import Effect, Effects, ReturnType
