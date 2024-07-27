@@ -9,8 +9,9 @@ from typing import Any, Callable, Literal, Mapping, Optional, Sequence, TYPE_CHE
 from flowstack.flows.channels import Channel
 from flowstack.flows.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer, PendingWrite
 from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
-from flowstack.flows.constants import READ_KEY
+from flowstack.flows.constants import READ_KEY, RESUMING
 from flowstack.flows.managed import ManagedValue
+from flowstack.flows.pregel.debug import map_debug_checkpoint
 from flowstack.flows.pregel.executor import Submit
 from flowstack.flows.typing import PregelExecutableTask
 
@@ -80,6 +81,14 @@ class PregelLoopBase[V]:
         self.checkpointer = checkpointer
         self.is_nested = READ_KEY in self.config
 
+    def _first(self) -> None:
+        # resuming from previous checkpoint requires
+        # - finding a previous checkpoint
+        # - receiving None input (outer graph) or RESUMING flag (subgraph)
+        is_resuming = bool(self.checkpoint['channels_versions']) and bool(
+            self.config.get(RESUMING) or self.input is None
+        )
+
     def _put_checkpoint(self, metadata: CheckpointMetadata) -> None:
         # assign step
         metadata['step'] = self.step
@@ -109,6 +118,15 @@ class PregelLoopBase[V]:
             )
             self.checkpoint_config = {**self.checkpoint_config, 'thread_ts': self.checkpoint['id']}
             # produce debug output
-            # TODO
+            self.stream.extend(
+                ('debug', v)
+                for v in map_debug_checkpoint(
+                    self.step,
+                    self.channels,
+                    self.graph.stream_channels_asis,
+                    self.checkpoint_metadata,
+                    **self.checkpoint_config
+                )
+            )
         # increment step
         self.step += 1

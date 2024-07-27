@@ -8,7 +8,7 @@ from typing import AsyncIterator, Iterator, Mapping, Optional, Sequence, Union, 
 from pydantic import Field
 
 from flowstack.core import SerializableComponent
-from flowstack.flows.channels import Channel
+from flowstack.flows.channels import Channel, ContextValue
 from flowstack.flows.checkpoints import Checkpointer
 from flowstack.flows.typing import PregelData, StreamMode
 from flowstack.typing import Effect, Effects
@@ -20,6 +20,14 @@ class Pregel(SerializableComponent[PregelData, PregelData]):
     stream_channels: Optional[Union[str, Sequence[str]]] = None
     checkpointer: Optional[Checkpointer] = None
     stream_mode: StreamMode = 'values'
+
+    @property
+    def stream_channels_asis(self) -> Union[str, Sequence[str]]:
+        return self.stream_channels or [
+            chan
+            for chan in self.channels
+            if not isinstance(self.channels[chan], ContextValue)
+        ]
 
     @final
     def run(self, data: PregelData, **kwargs) -> Effect[PregelData]:
