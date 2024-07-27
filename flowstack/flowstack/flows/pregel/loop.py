@@ -8,6 +8,7 @@ from typing import Any, Callable, Literal, Mapping, Optional, Sequence, TYPE_CHE
 
 from flowstack.flows.channels import Channel
 from flowstack.flows.checkpoints import Checkpoint, CheckpointMetadata, Checkpointer, PendingWrite
+from flowstack.flows.checkpoints.utils import copy_checkpoint, create_checkpoint
 from flowstack.flows.constants import READ_KEY
 from flowstack.flows.managed import ManagedValue
 from flowstack.flows.pregel.executor import Submit
@@ -58,6 +59,7 @@ class PregelLoopBase[V]:
     checkpoint_metadata: CheckpointMetadata
     checkpoint_pending_writes: list[PendingWrite]
     checkpoint_config: dict[str, Any]
+    put_checkpoint_future: concurrent.futures.Future
 
     checkpointer: Optional[Checkpointer]
     get_next_version: Callable[[Optional[V]], V]
@@ -77,3 +79,36 @@ class PregelLoopBase[V]:
         self.config = config
         self.checkpointer = checkpointer
         self.is_nested = READ_KEY in self.config
+
+    def _put_checkpoint(self, metadata: CheckpointMetadata) -> None:
+        # assign step
+        metadata['step'] = self.step
+        # bail if no checkpointer
+        if self._put_after_previous is not None:
+            # create new checkpoint
+            self.checkpoint_metadata = metadata
+            self.checkpoint = create_checkpoint(
+                self.checkpoint,
+                self.channels,
+                self.step,
+                # child graphs keep at most one checkpoint per parent checkpoint
+                # this is achieved by writing child checkpoints as progress is made
+                # (so that error recovery / resuming from interrupt don't lose work)
+                # but doing so always with an id equal to that of the parent checkpoint
+                id=self.config.get('thread_ts') if self.is_nested else None
+            )
+            # save it, without blocking
+            # if there's a previous checkpoint save in progress, wait for it
+            # ensuring checkpointers receive checkpoints in order
+            self.put_checkpoint_future = self.submit(
+                self._put_after_previous,
+                getattr(self, 'put_checkpoint_future', None),
+                copy_checkpoint(self.checkpoint),
+                self.checkpoint_metadata,
+                self.checkpoint_config
+            )
+            self.checkpoint_config = {**self.checkpoint_config, 'thread_ts': self.checkpoint['id']}
+            # produce debug output
+            # TODO
+        # increment step
+        self.step += 1
