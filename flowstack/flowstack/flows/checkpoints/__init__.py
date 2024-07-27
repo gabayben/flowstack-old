@@ -1,2 +1,9 @@
-from .base import CheckpointMetadata, Checkpoint, CheckpointTuple, CheckpointConfigSpec, Checkpointer
+from .base import (
+    PendingWrite,
+    CheckpointMetadata,
+    Checkpoint,
+    CheckpointTuple,
+    CheckpointConfigSpec,
+    Checkpointer
+)
 from .sqlite import SqliteCheckpointer
