@@ -10,3 +10,4 @@ from .component import (
 from .sequential import SequentialSchema, Sequential
 from .parallel import Parallel
 from .functional import Functional
+from .docorator import DecoratorBase, Decorator
