@@ -1,3 +1,4 @@
+from abc import ABC
 from functools import cached_property
 from typing import Any, Optional, Type, TypeVar, cast, override
 
@@ -10,7 +11,7 @@ from flowstack.utils.reflection import get_callable_type
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
 
-class DecoratorBase(Component[_Input, _Output]):
+class DecoratorBase(Component[_Input, _Output], ABC):
     bound: Component[_Input, _Output]
     custom_input_type: Optional[Type[_Input]] = None
     custom_output_type: Optional[Type[_Output]] = None
