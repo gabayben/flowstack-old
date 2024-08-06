@@ -62,14 +62,16 @@ class Component(RunnableSerializable[_Input, _Output]):
         self,
         other: Union['ComponentLike[_Output, _Other]', 'ComponentMapping[Any, _Other]']
     ) -> 'Component[_Input, _Other]':
-        pass
+        from flowstack.core.sequential import Sequential
+        return Sequential(self, other)
 
     @override
     def __ror__(
         self,
         other: Union['ComponentLike[_Other, _Input]', 'ComponentMapping[_Other, Any]']
     ) -> 'Component[_Other, _Output]':
-        pass
+        from flowstack.core.sequential import Sequential
+        return Sequential(other, self)
 
     @final
     def cast_in(self, mapper: 'ComponentLike[_Other, _Input]') -> 'Component[_Other, _Output]':

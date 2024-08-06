@@ -8,6 +8,7 @@ from flowstack.core import Component, ComponentLike, ComponentMapping, Effect, c
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
 _Other = TypeVar('_Other')
+_CoercibleType = Union[ComponentLike[_Input, _Output], ComponentMapping]
 
 class SequentialSchema(ABC):
     @abstractmethod
@@ -39,10 +40,10 @@ class Sequential(Component[_Input, _Output]):
 
     def __init__(
         self,
-        *steps: ComponentLike,
-        first: Optional[ComponentLike[_Input, Any]] = None,
-        middle: Optional[list[ComponentLike]] = None,
-        last: Optional[ComponentLike[Any, _Output]] = None,
+        *steps: _CoercibleType,
+        first: Optional[_CoercibleType[_Other, _Input]] = None,
+        middle: Optional[list[_CoercibleType]] = None,
+        last: Optional[_CoercibleType[_Output, _Other]] = None,
         name: Optional[str] = None
     ):
         steps_flat: list[Component] = []
