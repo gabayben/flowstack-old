@@ -207,10 +207,13 @@ ComponentMapping = Mapping[str, Union[ComponentLike[_Input, _Output], Any]]
 def coerce_to_component(
     thing: Union[ComponentLike[_Input, _Output], ComponentMapping[Any, Any]]
 ) -> Component[_Input, _Output]:
+    from flowstack.core.functional import Functional
     if isinstance(thing, Component):
         return thing
     elif isinstance(thing, Runnable):
         return _CoercedRunnable(thing)
+    elif callable(thing):
+        return Functional(thing)
 
 def component(
     function: Optional[ComponentFunction[_Input, _Output]] = None,
@@ -218,6 +221,12 @@ def component(
     input_schema: Optional[BaseModel] = None,
     output_schema: Optional[BaseModel] = None
 ) -> Component[_Input, _Output]:
+    from flowstack.core.functional import Functional
     def decorator(function: ComponentFunction[_Input, _Output]) -> Component[_Input, _Output]:
-        pass
+        return Functional(
+            function,
+            name=name,
+            input_schema=input_schema,
+            output_schema=output_schema
+        )
     return decorator(function) if function else decorator
