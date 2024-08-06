@@ -14,6 +14,8 @@ class DecoratorBase(Component[_Input, _Output]):
     bound: Component[_Input, _Output]
     custom_input_type: Optional[Type[_Input]] = None
     custom_output_type: Optional[Type[_Output]] = None
+    custom_input_schema: Optional[Type[BaseModel]] = None
+    custom_output_schema: Optional[Type[BaseModel]] = None
     kwargs: dict[str, Any] = Field(default_factory=dict)
 
     @property
@@ -44,12 +46,16 @@ class DecoratorBase(Component[_Input, _Output]):
         bound: Component[_Input, _Output],
         custom_input_type: Optional[Type[_Input]] = None,
         custom_output_type: Optional[Type[_Output]] = None,
+        custom_input_schema: Optional[Type[BaseModel]] = None,
+        custom_output_schema: Optional[Type[BaseModel]] = None,
         **kwargs
     ):
         super().__init__(
             bound=bound,
             custom_input_type=custom_input_type,
             custom_output_type=custom_output_type,
+            custom_input_schema=custom_input_schema,
+            custom_output_schema=custom_output_schema,
             kwargs=kwargs
         )
 
@@ -64,11 +70,11 @@ class DecoratorBase(Component[_Input, _Output]):
 
     @override
     def input_schema(self) -> Type[BaseModel]:
-        return self.bound.input_schema()
+        return self.custom_input_schema or self.bound.input_schema()
 
     @override
     def output_schema(self) -> Type[BaseModel]:
-        return self.bound.output_schema()
+        return self.custom_output_schema or self.bound.output_schema()
 
     def __call__(self, input: _Input, **kwargs) -> ReturnType[_Output]:
         return self.bound(input, **self.kwargs, **kwargs)
@@ -80,6 +86,8 @@ class Decorator(DecoratorBase[_Input, _Output]):
             self.bound,
             custom_input_type=self.custom_input_type,
             custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
             **self.kwargs,
             **kwargs
         )
@@ -94,6 +102,23 @@ class Decorator(DecoratorBase[_Input, _Output]):
             self.bound,
             custom_input_type=custom_input_type or self.custom_input_type,
             custom_output_type=custom_output_type or self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
+            **self.kwargs
+        )
+
+    @override
+    def with_schemas(
+        self,
+        custom_input_schema: Optional[Type[BaseModel]] = None,
+        custom_output_schema: Optional[Type[BaseModel]] = None
+    ) -> 'Component[_Input, _Output]':
+        return self.__class__(
+            self.bound,
+            custom_input_type=self.custom_input_type,
+            custom_output_type=self.custom_output_type,
+            custom_input_schema=custom_input_schema or self.custom_input_schema,
+            custom_output_schema=custom_output_schema or self.custom_output_schema,
             **self.kwargs
         )
 
@@ -103,6 +128,8 @@ class Decorator(DecoratorBase[_Input, _Output]):
             self.bound.with_retry(**kwargs),
             custom_input_type=self.custom_input_type,
             custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
             **self.kwargs
         )
 
@@ -112,5 +139,7 @@ class Decorator(DecoratorBase[_Input, _Output]):
             self.bound.with_fallbacks(**kwargs),
             custom_input_type=self.custom_input_type,
             custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
             **self.kwargs
         )

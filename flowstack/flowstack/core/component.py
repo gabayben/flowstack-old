@@ -91,7 +91,8 @@ class Component(RunnableSerializable[_Input, _Output]):
 
     @override
     def bind(self, **kwargs) -> 'Component[_Input, _Output]':
-        pass
+        from flowstack.core.docorator import Decorator
+        return Decorator(self, **kwargs)
 
     @override
     def with_types(
@@ -99,7 +100,24 @@ class Component(RunnableSerializable[_Input, _Output]):
         custom_input_type: Optional[Type[_Input]] = None,
         custom_output_type: Optional[Type[_Output]] = None
     ) -> 'Component[_Input, _Output]':
-        pass
+        from flowstack.core.docorator import Decorator
+        return Decorator(
+            self,
+            custom_input_type=custom_input_type,
+            custom_output_type=custom_output_type
+        )
+
+    def with_schemas(
+        self,
+        custom_input_schema: Optional[Type[BaseModel]] = None,
+        custom_output_schema: Optional[Type[BaseModel]] = None
+    ) -> 'Component[_Input, _Output]':
+        from flowstack.core.docorator import Decorator
+        return Decorator(
+            self,
+            custom_input_schema=custom_input_schema,
+            custom_output_schema=custom_output_schema
+        )
 
     @override
     def with_retry(
