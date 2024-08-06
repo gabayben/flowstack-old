@@ -219,12 +219,15 @@ def coerce_to_component(
     thing: Union[ComponentLike[_Input, _Output], ComponentMapping[Any, Any]]
 ) -> Component[_Input, _Output]:
     from flowstack.core.functional import Functional
+    from flowstack.core.parallel import Parallel
     if isinstance(thing, Component):
         return thing
     elif isinstance(thing, Runnable):
         return _CoercedRunnable(thing)
     elif callable(thing):
         return Functional(thing)
+    elif isinstance(thing, dict):
+        return Parallel(thing)
 
 def component(
     function: Optional[ComponentFunction[_Input, _Output]] = None,

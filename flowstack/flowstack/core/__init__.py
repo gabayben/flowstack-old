@@ -8,4 +8,5 @@ from .component import (
     component
 )
 from .sequential import SequentialSchema, Sequential
+from .parallel import Parallel
 from .functional import Functional
