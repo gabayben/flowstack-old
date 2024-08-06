@@ -7,4 +7,5 @@ from .component import (
     coerce_to_component,
     component
 )
+from .sequential import SequentialSchema, Sequential
 from .functional import Functional

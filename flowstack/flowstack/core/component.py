@@ -122,6 +122,15 @@ class Component(RunnableSerializable[_Input, _Output]):
         pass
 
     @override
+    def get_name(
+        self,
+        suffix: Optional[str] = None,
+        *,
+        name: Optional[str] = None
+    ) -> str:
+        return super().get_name(suffix=suffix, name=name)
+
+    @override
     def input_schema(self) -> Type[BaseModel]:
         return create_schema(self.get_name(suffix='Input'), self.InputType)
 
