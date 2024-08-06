@@ -11,3 +11,4 @@ from .sequential import SequentialSchema, Sequential
 from .parallel import Parallel
 from .functional import Functional
 from .docorator import DecoratorBase, Decorator
+from .passthrough import Passthrough
