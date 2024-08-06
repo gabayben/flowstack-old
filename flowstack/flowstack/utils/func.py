@@ -88,9 +88,3 @@ def tzip[A, B, C, D, E, F, G, H](
 
 def tzip[*T](*iterables: Iterable[T]) -> Iterable[tuple[T]]:
     return zip(*iterables)
-
-def flatten[T](matrix: list[list[T]]) -> list[T]:
-    flat_list = []
-    for row in matrix:
-        flat_list.extend(row)
-    return flat_list

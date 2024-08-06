@@ -1,11 +1,36 @@
-def extract_words(text: str) -> list[str]:
-    text = text.replace(r'\s', ' ')
-    text = text.replace(r' +', ' ')
-    text.strip()
-    return text.split(' ')
+from typing import Any, Callable, Mapping, Optional, Type
+import uuid
 
-def count_words(text: str) -> int:
-    return len(extract_words(text))
+def mapping_to_str(
+    obj: Mapping[str, Any | None],
+    exclude: list[str] = []
+) -> str:
+    text = ''
+    for k, v in obj.items():
+        if k not in exclude and v:
+            text += f'\n{k}: {v}'
+    return text.strip('\n')
 
-def count_tokens(text: str) -> int:
-    return round(count_words(text) * 1.3)
+def is_uuid(value: str) -> bool:
+    try:
+        uuid.UUID(value)
+        return True
+    except ValueError:
+        return False
+
+def type_name(type_: Type) -> str:
+    return f'{type_.__module__}.{type_.__name__}'
+
+def truncate_text(text: str, max_length: int) -> str:
+    if len(text) <= max_length:
+        return text
+    return text[: max_length - 3] + "..."
+
+def count_words[T](
+    objs: list[T],
+    key: Optional[Callable[[T], str]] = None
+) -> int:
+    return sum(
+        len((key(obj) if key else obj).split())
+        for obj in objs
+    )

@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "flowstack"
+name = "flowstack-chroma"
 version = "0.1.0"
 description = ""
 authors = ["bensg <gabay67890@gmail.com>"]
@@ -7,9 +7,8 @@ packages = [{ include = "flowstack" }]
 
 [tool.poetry.dependencies]
 python = "^3.12"
-langgraph = "^0.1.19"
-docarray = "^0.40.0"
-unsync = "^1.4.0"
+flowstack = { path = "../../flowstack/" }
+chromadb = "^0.5.5"
 
 
 [build-system]

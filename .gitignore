@@ -140,6 +140,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 
+/data/
 notebooks
 
 poetry.lock
