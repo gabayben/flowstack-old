@@ -10,6 +10,7 @@ from .base import (
     Artifact,
     ArtifactSource,
     StrictArtifactSource,
+    ArtifactQuery,
     Utf8Artifact,
     artifact_registry
 )

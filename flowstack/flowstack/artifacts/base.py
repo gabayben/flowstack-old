@@ -360,6 +360,7 @@ class Artifact(BaseDocWithoutId, ABC):
 
 StrictArtifactSource = Path | Artifact
 ArtifactSource = str | StrictArtifactSource
+ArtifactQuery = Union[str, Artifact]
 
 class Utf8Artifact(Artifact, ABC):
     def __str__(self) -> str:

@@ -9,6 +9,7 @@ packages = [{ include = "flowstack" }]
 python = "^3.12"
 langgraph = "^0.1.19"
 docarray = "^0.40.0"
+dataclasses-json = "^0.6.7"
 unsync = "^1.4.0"
 
 
