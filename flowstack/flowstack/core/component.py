@@ -146,7 +146,12 @@ class Component(RunnableSerializable[_Input, _Output]):
         exceptions_to_handle: Optional[tuple[Type[BaseException], ...]] = None,
         **kwargs
     ) -> 'Component[_Input, _Output]':
-        pass
+        from flowstack.core.fault_handling.fallbacks import Fallbacks
+        return Fallbacks(
+            self,
+            fallbacks,
+            exceptions_to_handle=exceptions_to_handle
+        )
 
     @override
     def get_name(
