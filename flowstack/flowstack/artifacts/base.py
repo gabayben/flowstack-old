@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 class Modality(StrEnum):
     TEXT = 'text'
+    TABLE = 'table'
     IMAGE = 'image'
     AUDIO = 'audio'
     VIDEO = 'video'

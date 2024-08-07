@@ -26,3 +26,4 @@ from .blob import (
 
 from .text import Text
 from .link import Link
+from .table import Table
