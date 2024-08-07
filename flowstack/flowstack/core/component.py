@@ -126,10 +126,17 @@ class Component(RunnableSerializable[_Input, _Output]):
         retry: Optional[RetryStrategy] = None,
         stop: Optional[StopStrategy] = None,
         wait: Optional[WaitStrategy] = None,
-        after_retry_failure: Optional[AfterRetryFailure] = None,
+        after: Optional[AfterRetryFailure] = None,
         **kwargs
     ) -> 'Component[_Input, _Output]':
-        pass
+        from flowstack.core.fault_handling.retry import Retry
+        return Retry(
+            self,
+            retry=retry,
+            stop=stop,
+            wait=wait,
+            after=after
+        )
 
     @override
     def with_fallbacks(
