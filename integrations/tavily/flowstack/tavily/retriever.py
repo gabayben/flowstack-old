@@ -1,6 +1,7 @@
-from flowstack.artifacts import Artifact
-from flowstack.core import Component
+from langchain_core.runnables import RunnableSerializable
 
-class TavilyApiRetriever(Component[str, list[Artifact]]):
-    def run(self, query: str, **kwargs) -> list[Artifact]:
+from flowstack.artifacts import Artifact
+
+class TavilyApiRetriever(RunnableSerializable[str, list[Artifact]]):
+    def invoke(self, query: str, **kwargs) -> list[Artifact]:
         pass

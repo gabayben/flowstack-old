@@ -1,27 +1,22 @@
-from functools import partial
-from typing import AsyncIterator, Iterator
+from typing import AsyncIterator, Iterator, override
+
+from langchain_core.runnables import RunnableSerializable
 
 from flowstack.components.ai import LLMInput
-from flowstack.core import Component, Effect, Effects
 from flowstack.messages import BaseMessage
 
-class InstructorChatGenerator(Component[LLMInput, BaseMessage]):
-    def run(self, input: LLMInput, **kwargs) -> Effect[BaseMessage]:
-        return Effects.From(
-            invoke=partial(self._invoke, input, **kwargs),
-            ainvoke=partial(self._ainvoke, input, **kwargs),
-            iter_=partial(self._stream, input, **kwargs),
-            aiter_=partial(self._astream, input, **kwargs)
-        )
-
-    def _invoke(self, input: LLMInput, **kwargs) -> BaseMessage:
+class InstructorChatGenerator(RunnableSerializable[LLMInput, BaseMessage]):
+    def invoke(self, input: LLMInput, **kwargs) -> BaseMessage:
         pass
 
-    async def _ainvoke(self, input: LLMInput, **kwargs) -> BaseMessage:
+    @override
+    async def ainvoke(self, input: LLMInput, **kwargs) -> BaseMessage:
         pass
 
-    def _stream(self, input: LLMInput, **kwargs) -> Iterator[BaseMessage]:
+    @override
+    def stream(self, input: LLMInput, **kwargs) -> Iterator[BaseMessage]:
         pass
 
-    async def _astream(self, input: LLMInput, **kwargs) -> AsyncIterator[BaseMessage]:
+    @override
+    async def astream(self, input: LLMInput, **kwargs) -> AsyncIterator[BaseMessage]:
         pass

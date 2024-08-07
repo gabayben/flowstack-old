@@ -1,2 +1,1 @@
 from .query_retriever import WikipediaQueryRetriever
-from .query_loader import WikipediaQueryLoader
