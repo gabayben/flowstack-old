@@ -9,7 +9,7 @@ from flowstack.core import Component
 logger = logging.getLogger(__name__)
 
 class WikipediaQueryRetriever(Component[str, list[Artifact]]):
-    def __call__(
+    def run(
         self,
         query: str,
         results: Optional[int] = None,

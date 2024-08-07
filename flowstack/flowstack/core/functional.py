@@ -65,5 +65,5 @@ class Functional(Component[_Input, _Output]):
     def output_schema(self) -> Type[BaseModel]:
         return self._output_schema or super().output_schema()
 
-    def __call__(self, input: _Input, **kwargs) -> ReturnType[_Output]:
+    def run(self, input: _Input, **kwargs) -> ReturnType[_Output]:
         return self._function(input, **kwargs)

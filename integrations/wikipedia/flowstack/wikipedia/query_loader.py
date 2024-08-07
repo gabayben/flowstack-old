@@ -18,7 +18,7 @@ class WikipediaQueryLoader(ArtifactLoader):
         self._results = results
         self._proceed_on_failure = proceed_on_failure
 
-    def __call__(self, **kwargs) -> Effect[list[Artifact]]:
+    def run(self, **kwargs) -> Effect[list[Artifact]]:
         return Effects.From(
             invoke=partial(
                 self._retriever.invoke,

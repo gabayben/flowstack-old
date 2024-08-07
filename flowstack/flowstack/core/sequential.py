@@ -1,9 +1,10 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Type, TypeVar, Union, cast, override
+from functools import partial
+from typing import Any, AsyncIterator, Iterator, Optional, Type, TypeVar, Union, override
 
 from pydantic import BaseModel, Field
 
-from flowstack.core import Component, ComponentLike, ComponentMapping, Effect, coerce_to_component
+from flowstack.core import Component, ComponentLike, ComponentMapping, Effect, Effects, coerce_to_component
 
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
@@ -123,15 +124,25 @@ class Sequential(Component[_Input, _Output]):
     def output_schema(self) -> Type[BaseModel]:
         return _seq_output_schema(self.steps)
 
-    def __call__(self, input: _Input, **kwargs) -> Effect[_Output]:
-        try:
-            effect = self.steps[0].effect(input, **kwargs)
-            for step in self.steps[1:]:
-                effect = effect.flat_map(lambda out: step.effect(out, **kwargs))
-        except BaseException as e:
-            raise e
-        else:
-            return cast(Effect[_Output], effect)
+    def run(self, input: _Input, **kwargs) -> Effect[_Output]:
+        return Effects.From(
+            invoke=partial(self._invoke, input, **kwargs),
+            ainvoke=partial(self._ainvoke, input, **kwargs),
+            iter_=partial(self.stream, input, **kwargs),
+            aiter_=partial(self._astream, input, **kwargs)
+        )
+
+    def _invoke(self, input: _Input, **kwargs) -> _Output:
+        pass
+
+    async def _ainvoke(self, input: _Input, **kwargs) -> _Output:
+        pass
+
+    def _stream(self, input: _Input, **kwargs) -> Iterator[_Input]:
+        pass
+
+    async def _astream(self, input: _Input) -> AsyncIterator[_Output]:
+        pass
 
 def _seq_input_schema(steps: list[Component]) -> Type[BaseModel]:
     first = steps[0]

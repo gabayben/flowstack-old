@@ -42,7 +42,7 @@ class Retry(DecoratorBase[_Input, _Output]):
         )
 
     @override
-    def __call__(self, input: _Input, **kwargs) -> Effect[_Output]:
+    def run(self, input: _Input, **kwargs) -> Effect[_Output]:
         return Effects.From(
             invoke=partial(self._invoke, input, **kwargs),
             ainvoke=partial(self._ainvoke, input, **kwargs)

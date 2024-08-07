@@ -6,7 +6,7 @@ from flowstack.core import Component, Effect, Effects
 from flowstack.messages import BaseMessage
 
 class InstructorChatGenerator(Component[LLMInput, BaseMessage]):
-    def __call__(self, input: LLMInput, **kwargs) -> Effect[BaseMessage]:
+    def run(self, input: LLMInput, **kwargs) -> Effect[BaseMessage]:
         return Effects.From(
             invoke=partial(self._invoke, input, **kwargs),
             ainvoke=partial(self._ainvoke, input, **kwargs),

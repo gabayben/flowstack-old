@@ -27,7 +27,7 @@ class Parallel(Component[_Input, dict[str, Any]]):
             max_workers=max_workers
         )
 
-    def __call__(self, input: _Input, **kwargs) -> Effect[dict[str, Any]]:
+    def run(self, input: _Input, **kwargs) -> Effect[dict[str, Any]]:
         return Effects.Parallel(
             {
                 name: comp.effect(input, **kwargs)

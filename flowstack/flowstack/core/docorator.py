@@ -5,7 +5,6 @@ from pydantic import BaseModel, Field
 
 from flowstack.core import Component, ReturnType
 from flowstack.typing import CallableType
-from flowstack.utils.reflection import get_callable_type
 
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
@@ -39,7 +38,7 @@ class DecoratorBase(Component[_Input, _Output], ABC):
     @property
     @override
     def callable_type(self) -> CallableType:
-        return get_callable_type(self.bound)
+        return self.bound.callable_type
 
     def __init__(
         self,
@@ -76,8 +75,8 @@ class DecoratorBase(Component[_Input, _Output], ABC):
     def output_schema(self) -> Type[BaseModel]:
         return self.custom_output_schema or self.bound.output_schema()
 
-    def __call__(self, input: _Input, **kwargs) -> ReturnType[_Output]:
-        return self.bound(input, **self.kwargs, **kwargs)
+    def run(self, input: _Input, **kwargs) -> ReturnType[_Output]:
+        return self.bound.run(input, **kwargs)
 
 class Decorator(DecoratorBase[_Input, _Output]):
     @override

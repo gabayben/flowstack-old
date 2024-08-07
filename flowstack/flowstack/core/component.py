@@ -60,7 +60,7 @@ class Component(RunnableSerializable[_Input, _Output]):
 
     @property
     def callable_type(self) -> CallableType:
-        return get_callable_type(self.__call__)
+        return get_callable_type(self.run)
 
     @override
     def __or__(
@@ -176,15 +176,15 @@ class Component(RunnableSerializable[_Input, _Output]):
         return create_schema(self.get_name(suffix='Output'), self.OutputType)
 
     @abstractmethod
-    def __call__(self, input: _Input, **kwargs) -> ReturnType[_Output]:
+    def run(self, input: _Input, **kwargs) -> ReturnType[_Output]:
         pass
 
     @final
     def effect(self, input: _Input, **kwargs) -> Effect[_Output]:
         callable_type = self.callable_type
         if callable_type == 'effect':
-            return self(input, **kwargs)
-        function = partial(self, input, **kwargs)
+            return self.run(input, **kwargs)
+        function = partial(self.run, input, **kwargs)
         if callable_type == 'aiter':
             return Effects.AsyncIterator(function)
         elif callable_type == 'iter':
@@ -215,16 +215,6 @@ class Component(RunnableSerializable[_Input, _Output]):
 
     @final
     @override
-    def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return super().batch(inputs, **kwargs)
-
-    @final
-    @override
-    async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return await super().abatch(inputs, **kwargs)
-
-    @final
-    @override
     def transform(self, inputs: Iterator[_Input], **kwargs) -> Iterator[_Output]:
         yield from super().transform(inputs, **kwargs)
 
@@ -234,11 +224,21 @@ class Component(RunnableSerializable[_Input, _Output]):
         async for chunk in super().atransform(inputs, **kwargs):
             yield chunk
 
+    @final
+    @override
+    def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
+        return super().batch(inputs, **kwargs)
+
+    @final
+    @override
+    async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
+        return await super().abatch(inputs, **kwargs)
+
 class _CoercedRunnable(Component[_Input, _Output]):
     def __init__(self, runnable: Runnable[_Input, _Output]):
         self._runnable = runnable
 
-    def __call__(self, input: _Input, **kwargs) -> Effect[_Output]:
+    def run(self, input: _Input, **kwargs) -> Effect[_Output]:
         return Effects.From(
             invoke=partial(self._runnable.invoke, input, **kwargs),
             ainvoke=partial(self._runnable.ainvoke, input, **kwargs),

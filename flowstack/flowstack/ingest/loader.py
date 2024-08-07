@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import cached_property, partial
+from functools import partial
 from typing import AsyncIterator, Iterator, final
 
 from flowstack.artifacts import Artifact
@@ -8,20 +8,20 @@ from flowstack.typing import CallableType
 from flowstack.utils.reflection import get_callable_type
 
 class ArtifactLoader(ABC):
-    @cached_property
+    @property
     def callable_type(self) -> CallableType:
-        return get_callable_type(self.__call__)
+        return get_callable_type(self.run)
 
     @abstractmethod
-    def __call__(self, **kwargs) -> ReturnType[list[Artifact]]:
+    def run(self, **kwargs) -> ReturnType[list[Artifact]]:
         pass
 
     @final
     def effect(self, **kwargs) -> Effect[list[Artifact]]:
         callable_type = self.callable_type
         if callable_type == 'effect':
-            return self(**kwargs)
-        function = partial(self, **kwargs)
+            return self.run(**kwargs)
+        function = partial(self.run, **kwargs)
         if callable_type == 'aiter':
             return Effects.AsyncIterator(function)
         elif callable_type == 'iter':
