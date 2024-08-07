@@ -18,7 +18,7 @@ from flowstack.utils.string import type_name
 
 if TYPE_CHECKING:
     from flowstack.artifacts.link import Link
-    from flowstack.stores import GraphNode, GraphRelation
+    # from flowstack.stores import GraphNode, GraphRelation
 
 class Modality(StrEnum):
     TEXT = 'text'
@@ -153,8 +153,8 @@ class RegexMetadata(TypedDict):
 
 class ArtifactMetadata(ModelDict):
     hierarchy: ArtifactHierarchy
-    graph_nodes: Optional[list['GraphNode']]
-    graph_relations: Optional[list['GraphRelation']]
+    # graph_nodes: Optional[list['GraphNode']]
+    # graph_relations: Optional[list['GraphRelation']]
     datestamp: Optional[datetime]
     filename: Optional[str]
     filetype: Optional[str]
