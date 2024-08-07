@@ -1,5 +1,4 @@
 from abc import ABC
-from functools import cached_property
 from typing import Any, Optional, Type, TypeVar, cast, override
 
 from pydantic import BaseModel, Field
@@ -37,7 +36,7 @@ class DecoratorBase(Component[_Input, _Output], ABC):
             else super().OutputType
         )
 
-    @cached_property
+    @property
     @override
     def callable_type(self) -> CallableType:
         return get_callable_type(self.bound)

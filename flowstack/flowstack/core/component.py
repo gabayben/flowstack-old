@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from functools import cached_property, partial
+from functools import partial
 from typing import (
     Any,
     AsyncIterator,
@@ -17,7 +17,7 @@ from typing import (
 )
 
 from langchain_core.runnables import Runnable, RunnableSerializable
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from flowstack.core import Effect, Effects, ReturnType
 from flowstack.typing import AfterRetryFailure, CallableType, RetryStrategy, StopStrategy, WaitStrategy
@@ -29,6 +29,11 @@ _Output = TypeVar('_Output')
 _Other = TypeVar('_Other')
 
 class Component(RunnableSerializable[_Input, _Output]):
+    model_config = ConfigDict(
+        extra='allow',
+        arbitrary_types_allowed=True
+    )
+
     @override
     @property
     def InputType(self) -> Type[_Input]:
@@ -53,9 +58,9 @@ class Component(RunnableSerializable[_Input, _Output]):
             'Override the OutputType property to specify the output type.'
         )
 
-    @cached_property
+    @property
     def callable_type(self) -> CallableType:
-        return get_callable_type(self)
+        return get_callable_type(self.__call__)
 
     @override
     def __or__(

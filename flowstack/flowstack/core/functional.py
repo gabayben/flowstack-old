@@ -1,4 +1,3 @@
-from functools import cached_property
 import inspect
 from typing import Optional, Type, TypeVar, override
 
@@ -22,7 +21,7 @@ class Functional(Component[_Input, _Output]):
     def OutputType(self) -> Type[_Output]:
         return self._signature.return_annotation or super().OutputType
 
-    @cached_property
+    @property
     @override
     def callable_type(self) -> CallableType:
         return get_callable_type(self._function)
