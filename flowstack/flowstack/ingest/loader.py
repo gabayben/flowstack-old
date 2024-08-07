@@ -10,7 +10,7 @@ from flowstack.utils.reflection import get_callable_type
 class ArtifactLoader(ABC):
     @cached_property
     def callable_type(self) -> CallableType:
-        return get_callable_type(self)
+        return get_callable_type(self.__call__)
 
     @abstractmethod
     def __call__(self, **kwargs) -> ReturnType[list[Artifact]]:

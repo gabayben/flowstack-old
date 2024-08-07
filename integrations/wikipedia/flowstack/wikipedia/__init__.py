@@ -1,2 +1,2 @@
-from .retriever import WikipediaRetriever
-from .loader import WikipediaLoader
+from .query_retriever import WikipediaQueryRetriever
+from .query_loader import WikipediaQueryLoader

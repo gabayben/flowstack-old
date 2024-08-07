@@ -31,6 +31,21 @@ def count_words[T](
     key: Optional[Callable[[T], str]] = None
 ) -> int:
     return sum(
-        len((key(obj) if key else obj).split())
+        len((key(obj) if key else str(obj)).split())
         for obj in objs
     )
+
+def count_tokens[T](
+    objs: list[T],
+    key: Optional[Callable[[T], str]] = None
+) -> int:
+    return int(count_words(objs, key=key) * (4/3))
+
+def cost_of_tokens[T](
+    objs: list[T],
+    price: float,
+    units: int = 1_000_000,
+    key: Optional[Callable[[T], str]] = None,
+    ndigits: int = 4
+) -> float:
+    return round((count_tokens(objs, key=key) / units) * price, ndigits)
