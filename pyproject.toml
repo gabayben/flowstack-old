@@ -9,9 +9,9 @@ python = "^3.12"
 flowstack = { path = "flowstack/" }
 
 [tool.poetry.group.dev.dependencies]
-langchainhub = "^0.1.20"
 flowstack-openai = { path = "integrations/openai/" }
 flowstack-chroma = { path = "integrations/chroma/" }
+flowstack-neo4j = { path = "integrations/neo4j/" }
 flowstack-tavily = { path = "integrations/tavily/" }
 flowstack-wikipedia = { path = "integrations/wikipedia/" }
 jupyter = "^1.0.0"

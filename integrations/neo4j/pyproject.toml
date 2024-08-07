@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "flowstack-neo4j"
+version = "0.1.0"
+description = ""
+authors = ["bensg <gabay67890@gmail.com>"]
+packages = [{ include = "flowstack" }]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+flowstack = { path = "../../flowstack/" }
+neo4j = "^5.23.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
