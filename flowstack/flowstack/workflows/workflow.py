@@ -1,4 +1,4 @@
-from typing import AsyncIterator, Generic, Iterator, Optional, Sequence, Type, TypeVar, TypedDict, Union
+from typing import AsyncIterator, Generic, Iterator, Optional, Sequence, Type, TypeVar, Union
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
@@ -8,9 +8,9 @@ from pydantic import BaseModel
 
 from flowstack.utils.reflection import get_type_arg
 
-_State = TypeVar('_State', bound=(TypedDict, BaseModel, None))
-_Input = TypeVar('_Input', bound=(TypedDict, BaseModel, None))
-_Output = TypeVar('_Output', bound=(TypedDict, BaseModel, None))
+_State = TypeVar('_State')
+_Input = TypeVar('_Input')
+_Output = TypeVar('_Output')
 _Config = TypeVar('_Config')
 
 class Workflow(BaseModel, Generic[_State, _Input, _Output, _Config]):
