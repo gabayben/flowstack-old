@@ -2,11 +2,11 @@ from abc import ABC, abstractmethod
 from typing import final, override
 
 from flowstack.artifacts import Artifact, ArtifactMetadata
-from flowstack.components.parsers.base import ArtifactParser
+from flowstack.components.parsers.base import BaseArtifactParser
 from flowstack.components.parsers.utils import build_artifacts_from_splits
 from flowstack.utils.threading import run_async
 
-class TextSplitter(ArtifactParser, ABC):
+class TextSplitter(BaseArtifactParser, ABC):
     @final
     def _parse(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
         chunks: list[Artifact] = []

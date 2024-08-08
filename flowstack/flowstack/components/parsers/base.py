@@ -7,8 +7,18 @@ from flowstack.artifacts import Artifact, GetArtifactId
 from flowstack.core import Component
 from flowstack.utils.threading import run_async
 
-class ArtifactParser(Component[list[Artifact], list[Artifact]], ABC):
+ArtifactParser = Component[list[Artifact], list[Artifact]]
+
+class BaseArtifactParser(ArtifactParser, ABC):
     id_func: Optional[GetArtifactId] = Field(default=None, exclude=True)
+
+    def __init__(
+        self,
+        id_func: Optional[GetArtifactId] = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self.id_func = id_func
 
     @final
     def invoke(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
