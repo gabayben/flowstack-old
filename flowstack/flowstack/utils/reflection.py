@@ -1,15 +1,16 @@
 import inspect
-from typing import Any, Callable, Type, Union, get_args, get_origin
+from types import NoneType
+from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
 
 from overrides.typing_utils import get_type_hints, issubtype
 
 from flowstack.typing import CallableType
 
 def get_callable_type(func: Callable) -> CallableType:
-    from flowstack.core.effect import Effect
-    if is_return_type(func, Effect):
-        return 'effect'
-    elif inspect.isasyncgenfunction(func):
+    # from flowstack.core.effect import Effect
+    # if is_return_type(func, Effect):
+    #     return 'effect'
+    if inspect.isasyncgenfunction(func):
         return 'aiter'
     elif inspect.isgeneratorfunction(func):
         return 'iter'
@@ -62,3 +63,20 @@ def types_are_compatible(source, target) -> bool:
         return False
 
     return all(types_are_compatible(*args) for args in zip(source_args, target_args))
+
+def get_type_arg(
+    cls: type,
+    position: int,
+    raise_error: bool = False
+) -> Optional[type]:
+    for type_ in cls.__orig_bases__: # type: ignore[attr-defined]
+        type_args = get_args(type_)
+        if type_args and len(type_args) >= position + 1:
+            arg = type_args[position]
+            return arg if arg is not NoneType else None
+    if raise_error:
+        raise TypeError(
+            f"{cls.__name__} doesn't have an inferrable OutputType."
+            'Override the OutputType property to specify the output type.'
+        )
+    return None
