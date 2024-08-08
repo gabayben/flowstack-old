@@ -2,12 +2,11 @@ from abc import ABC, abstractmethod
 from typing import (
     Any,
     AsyncIterator,
-    Awaitable,
-    Callable,
     Iterator,
     Mapping,
     Optional,
-    Sequence, Type,
+    Sequence,
+    Type,
     TypeVar,
     Union,
     override
@@ -16,7 +15,22 @@ from typing import (
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel, ConfigDict
 
-from flowstack.typing import AfterRetryFailure, DrawableGraph, RetryStrategy, Serializable, StopStrategy, WaitStrategy
+from flowstack.typing import (
+    AfterRetryFailure,
+    AsyncBatchFunction,
+    AsyncFunction,
+    AsyncStreamFunction,
+    AsyncTransformFunction,
+    BatchFunction,
+    DrawableGraph,
+    RetryStrategy,
+    Serializable,
+    StopStrategy,
+    StreamFunction,
+    SyncFunction,
+    TransformFunction,
+    WaitStrategy
+)
 from flowstack.utils.reflection import get_type_arg
 
 _Input = TypeVar('_Input')
@@ -242,14 +256,14 @@ class _CoercedRunnable(Component[_Input, _Output]):
             yield chunk
 
 ComponentFunction = Union[
-    Callable[[_Input, ...], _Output],
-    Callable[[_Input, ...], Awaitable[_Output]],
-    Callable[[list[_Input], ...], list[_Output]],
-    Callable[[list[_Input], ...], Awaitable[list[_Output]]],
-    Callable[[_Input, ...], Iterator[_Output]],
-    Callable[[_Input, ...], AsyncIterator[_Output]],
-    Callable[[Iterator[_Input], ...], Iterator[_Output]],
-    Callable[[AsyncIterator[_Input], ...], AsyncIterator[_Output]]
+    SyncFunction,
+    AsyncFunction,
+    BatchFunction,
+    AsyncBatchFunction,
+    StreamFunction,
+    AsyncStreamFunction,
+    TransformFunction,
+    AsyncTransformFunction
 ]
 ComponentLike = Union[
     Runnable[_Input, _Output],
