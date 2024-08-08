@@ -176,7 +176,7 @@ class Workflow(BaseModel, Generic[_State, _Input, _Output], ABC):
         inputs: AsyncIterator[Union[_State, _Input]],
         **kwargs: Unpack[WorkflowOptions]
     ) -> AsyncIterator[Union[_State, _Output]]:
-        async for chunk in self.graph.atransform(await _adict_iter(inputs), **kwargs):
+        async for chunk in self.graph.atransform(_adict_iter(inputs), **kwargs):
             yield chunk
 
 def _to_dict(input: Union[_State, _Input]) -> dict[str, Any]:
