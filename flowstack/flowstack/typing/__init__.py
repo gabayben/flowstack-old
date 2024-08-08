@@ -1,6 +1,5 @@
 from .types import (
     SchemaType,
-    CallableType,
     MetadataType,
     Embedding,
     RetryStrategy,

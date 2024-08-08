@@ -1,11 +1,11 @@
-from typing import AsyncIterator, Generic, Iterator, Optional, Sequence, Type, TypeVar, Union
+from typing import AsyncIterator, Generic, Iterator, Optional, Sequence, Type, TypeVar, Union, override
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import StateGraph
 from langgraph.graph.state import CompiledStateGraph
 from langgraph.pregel import All
-from pydantic import BaseModel
 
+from flowstack.core import Component
 from flowstack.utils.reflection import get_type_arg
 
 _State = TypeVar('_State')
@@ -13,21 +13,23 @@ _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
 _Config = TypeVar('_Config')
 
-class Workflow(BaseModel, Generic[_State, _Input, _Output, _Config]):
+class Workflow(Component[Union[_State, _Input], Union[_State, _Output]], Generic[_State, _Input, _Output, _Config]):
     @property
     def state_schema(self) -> Optional[Type[_State]]:
         return get_type_arg(self.__class__, 0)
 
     @property
+    @override
     def input_schema(self) -> Optional[Type[_Input]]:
         return get_type_arg(self.__class__, 1)
 
     @property
+    @override
     def output_schema(self) -> Optional[Type[_Output]]:
         return get_type_arg(self.__class__, 2)
 
     @property
-    def config_schema(self) -> Optional[Type[_Config]]:
+    def graph_config_schema(self) -> Optional[Type[_Config]]:
         return get_type_arg(self.__class__, 3)
 
     @property
@@ -45,7 +47,7 @@ class Workflow(BaseModel, Generic[_State, _Input, _Output, _Config]):
     def __post_init__(self):
         self._builder = StateGraph(
             state_schema=self.state_schema,
-            config_schema=self.config_schema,
+            config_schema=self.graph_config_schema,
             input=self.input_schema,
             output=self.output_schema
         )
@@ -64,19 +66,22 @@ class Workflow(BaseModel, Generic[_State, _Input, _Output, _Config]):
             debug=debug
         )
 
-    def invoke(self, input: _State, **kwargs) -> _Output:
+    def invoke(self, input: Union[_State, _Input], **kwargs) -> Union[_State, _Output]:
         self._check()
         return self.graph.invoke(input, **kwargs)
 
-    async def ainvoke(self, input: _State, **kwargs) -> _Output:
+    @override
+    async def ainvoke(self, input: Union[_State, _Input], **kwargs) -> Union[_State, _Output]:
         self._check()
         return await self.graph.ainvoke(input, **kwargs)
 
-    def stream(self, input: _State, **kwargs) -> Iterator[_Output]:
+    @override
+    def stream(self, input: Union[_State, _Input], **kwargs) -> Iterator[Union[_State, _Output]]:
         self._check()
         yield from self.graph.stream(input, **kwargs)
 
-    async def astream(self, input: _State, **kwargs) -> AsyncIterator[_Output]:
+    @override
+    async def astream(self, input: Union[_State, _Input], **kwargs) -> AsyncIterator[Union[_State, _Output]]:
         self._check()
         async for chunk in self.graph.astream(input, **kwargs):
             yield chunk

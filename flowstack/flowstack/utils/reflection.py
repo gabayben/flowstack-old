@@ -4,20 +4,6 @@ from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
 
 from overrides.typing_utils import get_type_hints, issubtype
 
-from flowstack.typing import CallableType
-
-def get_callable_type(func: Callable) -> CallableType:
-    # from flowstack.core.effect import Effect
-    # if is_return_type(func, Effect):
-    #     return 'effect'
-    if inspect.isasyncgenfunction(func):
-        return 'aiter'
-    elif inspect.isgeneratorfunction(func):
-        return 'iter'
-    elif inspect.iscoroutinefunction(func):
-        return 'ainvoke'
-    return 'invoke'
-
 def get_return_type[R](func: Callable[..., R]) -> Type[R]:
     return get_type_hints(func)['return']
 

@@ -1,5 +1,5 @@
 import enum
-from typing import Any, Callable, Literal, TypeVar, Union
+from typing import Any, Callable, TypeVar, Union
 
 from numpy import ndarray
 import tenacity
@@ -12,7 +12,6 @@ class SchemaType(enum.StrEnum):
     NAMED_TUPLE = 'named_tuple'
     VALUE = 'value'
 
-CallableType = Literal['invoke', 'ainvoke', 'iter', 'aiter', 'effect']
 MetadataType = Union[dict[str, Any], list[dict[str, Any]]]
 Embedding = ndarray
 

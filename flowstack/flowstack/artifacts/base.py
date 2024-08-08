@@ -5,7 +5,7 @@ from enum import StrEnum, auto
 from hashlib import sha256
 import os
 from pathlib import Path
-from typing import Any, Literal, Optional, Self, TYPE_CHECKING, TypedDict, Union, override
+from typing import Any, Literal, Optional, Protocol, Self, TYPE_CHECKING, TypedDict, Union, override
 
 from docarray.base_doc.doc import BaseDocWithoutId, IncEx
 from docarray.typing import AnyUrl, ID
@@ -395,6 +395,12 @@ class Utf8Artifact(Artifact, ABC):
 
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
+
+#### Id Function
+
+class GetArtifactId(Protocol):
+    def __call__(self, idx: int, artifact: Artifact) -> str:
+        pass
 
 #### Registry
 

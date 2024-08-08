@@ -12,6 +12,7 @@ from .base import (
     StrictArtifactSource,
     ArtifactQuery,
     Utf8Artifact,
+    GetArtifactId,
     artifact_registry
 )
 
