@@ -7,7 +7,7 @@ from typing import (
     Iterator,
     Mapping,
     Optional,
-    Type,
+    Sequence, Type,
     TypeVar,
     Union,
     override
@@ -16,7 +16,8 @@ from typing import (
 from langchain_core.runnables import Runnable
 from pydantic import BaseModel, ConfigDict
 
-from flowstack.typing import DrawableGraph, Serializable
+from flowstack.typing import AfterRetryFailure, DrawableGraph, RetryStrategy, Serializable, StopStrategy, WaitStrategy
+from flowstack.utils.reflection import get_type_arg
 
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
@@ -27,6 +28,16 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
         extra='allow',
         arbitrary_types_allowed=True
     )
+
+    @property
+    @override
+    def InputType(self) -> Type[_Input]:
+        return get_type_arg(self.__class__, 0, raise_error=True)
+
+    @property
+    @override
+    def OutputType(self) -> Type[_Output]:
+        return get_type_arg(self.__class__, 1, raise_error=True)
 
     @override
     def __or__(
@@ -54,6 +65,58 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
         out_mapper: 'ComponentLike[_Output, _Other]'
     ) -> 'Component[_Other, _Other]':
         return in_mapper | self | out_mapper
+
+    @override
+    def bind(self, **kwargs) -> 'Component[_Input, _Output]':
+        from flowstack.core.decorator import Decorator
+        return Decorator(self, kwargs=kwargs)
+
+    @override
+    def with_types(
+        self,
+        custom_input_type: Optional[Type[_Input]] = None,
+        custom_output_type: Optional[Type[_Output]] = None
+    ) -> 'Component[_Input, _Output]':
+        from flowstack.core.decorator import Decorator
+        return Decorator(
+            self,
+            custom_input_type=custom_input_type,
+            custom_output_type=custom_output_type
+        )
+
+    def with_schemas(
+        self,
+        custom_input_schema: Optional[Type[BaseModel]] = None,
+        custom_output_schema: Optional[Type[BaseModel]] = None
+    ) -> 'Component[_Input, _Output]':
+        from flowstack.core.decorator import Decorator
+        return Decorator(
+            self,
+            custom_input_schema=custom_input_schema,
+            custom_output_schema=custom_output_schema
+        )
+
+    @override
+    def with_retry(
+        self,
+        *,
+        retry_stategy: Optional[RetryStrategy] = None,
+        stop_strategy: Optional[StopStrategy] = None,
+        wait_strategy: Optional[WaitStrategy] = None,
+        after: Optional[AfterRetryFailure] = None,
+        **kwargs
+    ) -> 'Component[_Input, _Output]':
+        pass
+
+    @override
+    def with_fallbacks(
+        self,
+        fallbacks: Sequence['ComponentLike[_Input, _Output]'],
+        *,
+        exceptions_to_handle: Optional[tuple[Type[BaseException], ...]] = None,
+        **kwargs
+    ) -> 'Component[_Input, _Output]':
+        pass
 
     @override
     def get_name(
@@ -111,6 +174,16 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
             yield chunk
 
 class _CoercedRunnable(Component[_Input, _Output]):
+    @property
+    @override
+    def InputType(self) -> Type[_Input]:
+        return self._runnable.InputType
+
+    @property
+    @override
+    def OutputType(self) -> Type[_Output]:
+        return self._runnable.OutputType
+
     def __init__(self, runnable: Runnable[_Input, _Output]):
         self._runnable = runnable
 

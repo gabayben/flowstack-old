@@ -42,7 +42,7 @@ class BaseDecorator(Component[_Input, _Output], ABC):
         custom_output_type: Optional[Type[_Output]] = None,
         custom_input_schema: Optional[Type[BaseModel]] = None,
         custom_output_schema: Optional[Type[BaseModel]] = None,
-        **kwargs
+        kwargs: dict[str, Any] = {}
     ):
         super().__init__(
             bound=bound,
@@ -75,34 +75,98 @@ class BaseDecorator(Component[_Input, _Output], ABC):
         return self.bound.get_graph(**kwargs)
 
     def invoke(self, input: _Input, **kwargs) -> _Output:
-        return self.bound.invoke(input, **kwargs)
+        return self.bound.invoke(input, **self.kwargs, **kwargs)
 
     @override
     async def ainvoke(self, input: _Input, **kwargs) -> _Output:
-        return await self.bound.ainvoke(input, **kwargs)
+        return await self.bound.ainvoke(input, **self.kwargs, **kwargs)
 
     @override
     def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return self.bound.batch(inputs, **kwargs)
+        return self.bound.batch(inputs, **self.kwargs, **kwargs)
 
     @override
     async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return await self.bound.abatch(inputs, **kwargs)
+        return await self.bound.abatch(inputs, **self.kwargs, **kwargs)
 
     @override
     def stream(self, input: _Input, **kwargs) -> Iterator[_Output]:
-        yield from self.bound.stream(input, **kwargs)
+        yield from self.bound.stream(input, **self.kwargs, **kwargs)
 
     @override
     async def astream(self, input: _Input, **kwargs) -> AsyncIterator[_Output]:
-        async for chunk in self.bound.astream(input, **kwargs):
+        async for chunk in self.bound.astream(input, **self.kwargs, **kwargs):
             yield chunk
 
     @override
     def transform(self, inputs: Iterator[_Input], **kwargs) -> Iterator[_Output]:
-        yield from self.bound.transform(inputs, **kwargs)
+        yield from self.bound.transform(inputs, **self.kwargs, **kwargs)
 
     @override
     async def atransform(self, inputs: AsyncIterator[_Input], **kwargs) -> AsyncIterator[_Output]:
-        async for chunk in self.bound.atransform(inputs, **kwargs):
+        async for chunk in self.bound.atransform(inputs, **self.kwargs, **kwargs):
             yield chunk
+
+class Decorator(BaseDecorator[_Input, _Output]):
+    @override
+    def bind(self, **kwargs) -> Component[_Input, _Output]:
+        return self.__class__(
+            self.bound,
+            custom_input_type=self.custom_input_type,
+            custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
+            kwargs={**self.kwargs, **kwargs}
+        )
+
+    @override
+    def with_types(
+        self,
+        custom_input_type: Optional[Type[_Input]] = None,
+        custom_output_type: Optional[Type[_Output]] = None
+    ) -> Component[_Input, _Output]:
+        return self.__class__(
+            self.bound,
+            custom_input_type=custom_input_type or self.custom_input_type,
+            custom_output_type=custom_output_type or self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
+            kwargs=self.kwargs
+        )
+
+    @override
+    def with_schemas(
+        self,
+        custom_input_schema: Optional[Type[BaseModel]] = None,
+        custom_output_schema: Optional[Type[BaseModel]] = None
+    ) -> Component[_Input, _Output]:
+        return self.__class__(
+            self.bound,
+            custom_input_type=self.custom_input_type,
+            custom_output_type=self.custom_output_type,
+            custom_input_schema=custom_input_schema or self.custom_input_schema,
+            custom_output_schema=custom_output_schema or self.custom_output_schema,
+            kwargs=self.kwargs
+        )
+
+    @override
+    def with_retry(self, **kwargs) -> Component[_Input, _Output]:
+        return self.__class__(
+            self.bound.with_retry(**kwargs),
+            custom_input_type=self.custom_input_type,
+            custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
+            kwargs=self.kwargs
+        )
+
+    @override
+    def with_fallbacks(self, *args, **kwargs) -> 'Component[_Input, _Output]':
+        return self.__class__(
+            self.bound.with_fallbacks(*args, **kwargs),
+            custom_input_type=self.custom_input_type,
+            custom_output_type=self.custom_output_type,
+            custom_input_schema=self.custom_input_schema,
+            custom_output_schema=self.custom_output_schema,
+            kwargs=self.kwargs
+        )

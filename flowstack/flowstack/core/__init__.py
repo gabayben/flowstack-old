@@ -6,3 +6,4 @@ from .component import (
     coerce_to_component,
     component
 )
+from .decorator import Decorator
