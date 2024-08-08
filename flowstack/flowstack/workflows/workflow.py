@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import AsyncIterator, Generic, Iterator, Optional, Sequence, Type, TypeVar, Union, override
 
 from langgraph.checkpoint.base import BaseCheckpointSaver
@@ -11,9 +12,18 @@ from flowstack.utils.reflection import get_type_arg
 _State = TypeVar('_State')
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
-_Config = TypeVar('_Config')
 
-class Workflow(Component[Union[_State, _Input], Union[_State, _Output]], Generic[_State, _Input, _Output, _Config]):
+class Workflow(Component[Union[_State, _Input], Union[_State, _Output]], Generic[_State, _Input, _Output], ABC):
+    def __init__(
+        self,
+        name: Optional[str] = None,
+        config_schema: Optional[type] = None,
+        **kwargs
+    ):
+        super().__init__(**kwargs)
+        self._name = name
+        self._config_schema = config_schema
+
     @property
     def state_schema(self) -> Optional[Type[_State]]:
         return get_type_arg(self.__class__, 0)
@@ -29,8 +39,8 @@ class Workflow(Component[Union[_State, _Input], Union[_State, _Output]], Generic
         return get_type_arg(self.__class__, 2)
 
     @property
-    def graph_config_schema(self) -> Optional[Type[_Config]]:
-        return get_type_arg(self.__class__, 3)
+    def graph_config_schema(self) -> Optional[type]:
+        return self._config_schema
 
     @property
     def builder(self) -> StateGraph:
@@ -65,6 +75,15 @@ class Workflow(Component[Union[_State, _Input], Union[_State, _Output]], Generic
             interrupt_after=interrupt_after,
             debug=debug
         )
+
+    @override
+    def get_name(
+        self,
+        suffix: Optional[str] = None,
+        *,
+        name: Optional[str] = None
+    ) -> str:
+        return self.get_name(suffix=suffix, name=name or self._name)
 
     def invoke(self, input: Union[_State, _Input], **kwargs) -> Union[_State, _Output]:
         self._check()

@@ -1,6 +1,6 @@
 from flowstack.artifacts import Artifact
-from flowstack.interfaces import Retriever
+from flowstack.components.retrievers.base import BaseRetriever
 
-class TavilyApiRetriever(Retriever):
-    def retrieve(self, query: str, **kwargs) -> list[Artifact]:
+class TavilyApiRetriever(BaseRetriever):
+    def _invoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         pass

@@ -1,6 +1,9 @@
-from flowstack.artifacts import Artifact
-from flowstack.core import Component
+from typing import Optional
 
-class OpenAIEmbedder(Component[list[Artifact], list[Artifact]]):
-    def invoke(self, artifacts: list[Artifact], **kwargs) -> list[Artifact]:
+from flowstack.artifacts import Artifact
+from flowstack.components.ai.embedder import BaseEmbedder
+from flowstack.typing import Embedding
+
+class OpenAIEmbedder(BaseEmbedder):
+    def _invoke(self, artifacts: list[Artifact], **kwargs) -> list[Optional[Embedding]]:
         pass

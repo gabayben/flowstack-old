@@ -396,7 +396,7 @@ class Utf8Artifact(Artifact, ABC):
     def _get_string_for_regex_filter(self) -> str:
         return str(self)
 
-#### Id Function
+#### Misc
 
 class GetArtifactId(Protocol):
     def __call__(self, idx: int, artifact: Artifact) -> str:

@@ -15,6 +15,15 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
         arbitrary_types_allowed=True
     )
 
+    @override
+    def get_name(
+        self,
+        suffix: Optional[str] = None,
+        *,
+        name: Optional[str] = None
+    ) -> str:
+        return super().get_name(suffix=suffix, name=name)
+
     @abstractmethod
     def invoke(self, input: _Input, **kwargs) -> _Output:
         pass
