@@ -1,6 +1,7 @@
 import enum
 from typing import Any, Callable, TypeVar, Union
 
+from langchain_core.runnables.graph import Graph
 from numpy import ndarray
 import tenacity
 
@@ -19,3 +20,5 @@ RetryStrategy = tenacity.retry_base | Callable[[tenacity.RetryCallState], bool]
 StopStrategy = tenacity.stop.stop_base | Callable[[tenacity.RetryCallState], bool]
 WaitStrategy = tenacity.wait.wait_base | Callable[[tenacity.RetryCallState], int | float]
 AfterRetryFailure = Callable[[tenacity.RetryCallState], None]
+
+DrawableGraph = Graph

@@ -5,7 +5,8 @@ from .types import (
     RetryStrategy,
     StopStrategy,
     WaitStrategy,
-    AfterRetryFailure
+    AfterRetryFailure,
+    DrawableGraph
 )
 
 from .protocols import Addable
