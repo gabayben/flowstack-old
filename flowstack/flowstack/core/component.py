@@ -45,14 +45,16 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
         self,
         other: Union['ComponentLike[_Output, _Other]', 'ComponentMapping[Any, _Other]']
     ) -> 'Component[_Input, _Other]':
-        pass
+        from flowstack.core.sequential import Sequential
+        return Sequential(self, coerce_to_component(other))
 
     @override
     def __ror__(
         self,
         other: Union['ComponentLike[_Other, _Input]', 'ComponentMapping[_Other, Any]']
     ) -> 'Component[_Other, _Output]':
-        pass
+        from flowstack.core.sequential import Sequential
+        return Sequential(coerce_to_component(other), self)
 
     def cast_in(self, mapper: 'ComponentLike[_Other, _Input]') -> 'Component[_Other, _Output]':
         return mapper | self
@@ -247,10 +249,13 @@ ComponentMapping = Mapping[str, Union[ComponentLike[_Input, _Output], Any]]
 def coerce_to_component(
     thing: Union[ComponentLike[_Input, _Output], ComponentMapping[Any, Any]]
 ) -> Component[_Input, _Output]:
+    from flowstack.core.functional import Functional
     if isinstance(thing, Component):
         return thing
     elif isinstance(thing, Runnable):
         return _CoercedRunnable(thing)
+    elif callable(thing):
+        return Functional(thing)
 
 def component(
     function: Optional[ComponentFunction[_Input, _Output]] = None,
@@ -258,6 +263,12 @@ def component(
     input_schema: Optional[Type[BaseModel]] = None,
     output_schema: Optional[Type[BaseModel]] = None
 ) -> Component[_Input, _Output]:
+    from flowstack.core.functional import Functional
     def decorator(function: ComponentFunction[_Input, _Output]) -> Component[_Input, _Output]:
-        pass
+        return Functional(
+            function,
+            name=name,
+            input_schema=input_schema,
+            output_schema=output_schema
+        )
     return decorator(function) if function else decorator
