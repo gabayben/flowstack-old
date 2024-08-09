@@ -1,5 +1,4 @@
-from abc import ABC, abstractmethod
-from typing import Any, AsyncIterator, Iterator, Optional, Type, TypeVar, Union, override
+from typing import Any, AsyncIterator, Iterator, Optional, Protocol, Type, TypeVar, Union, override, runtime_checkable
 
 from pydantic import BaseModel, Field
 
@@ -10,12 +9,11 @@ _Output = TypeVar('_Output')
 _Other = TypeVar('_Other')
 _CoercibleType = Union[ComponentLike[_Input, _Output], ComponentMapping[Any, Any]]
 
-class SequentialSchema(ABC):
-    @abstractmethod
+@runtime_checkable
+class SequentialSchema(Protocol):
     def seq_input_schema(self, next_schema: Type[BaseModel]) -> Type[BaseModel]:
         pass
 
-    @abstractmethod
     def seq_output_schema(self, previous_schema: Type[BaseModel]) -> Type[BaseModel]:
         pass
 
