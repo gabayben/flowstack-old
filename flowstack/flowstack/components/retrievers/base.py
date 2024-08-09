@@ -3,10 +3,9 @@ from typing import AsyncIterator, Iterator, Union, final, override
 
 from flowstack.artifacts import Artifact
 from flowstack.core import Component
-from flowstack.typing import Embedding
 from flowstack.utils.threading import run_async
 
-RetrieverInput = Union[str, Embedding, Artifact]
+RetrieverInput = Union[str, Artifact]
 Retriever = Component[RetrieverInput, list[Artifact]]
 
 class BaseRetriever(Retriever, ABC):
@@ -33,26 +32,6 @@ class BaseRetriever(Retriever, ABC):
 
     async def _ainvoke(self, query: Artifact, **kwargs) -> list[Artifact]:
         return await run_async(self._invoke, query, **kwargs)
-
-    # Batch
-
-    @final
-    @override
-    def batch(self, queries: list[RetrieverInput], **kwargs) -> list[list[Artifact]]:
-        pass
-
-    def _batch(self, queries: list[Artifact], **kwargs) -> list[list[Artifact]]:
-        pass
-
-    # Async Batch
-
-    @final
-    @override
-    async def abatch(self, queries: list[RetrieverInput], **kwargs) -> list[list[Artifact]]:
-        pass
-
-    async def _abatch(self, queries: list[Artifact], **kwargs) -> list[list[Artifact]]:
-        pass
 
     # Stream
 

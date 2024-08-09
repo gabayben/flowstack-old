@@ -33,22 +33,6 @@ class BaseEmbedder(Embedder, ABC):
     async def _ainvoke(self, artifacts: list[Artifact], **kwargs) -> list[Optional[Embedding]]:
         return await run_async(self._invoke, artifacts, **kwargs)
 
-    # Batch
-
-    @final
-    @override
-    def batch(self, artifacts: list[list[Artifact]], **kwargs) -> list[list[Artifact]]:
-        artifacts = [artifact for sublist in artifacts for artifact in sublist]
-        return [self.invoke(artifacts, **kwargs)]
-
-    # Async Batch
-
-    @final
-    @override
-    async def abatch(self, artifacts: list[list[Artifact]], **kwargs) -> list[list[Artifact]]:
-        artifacts = [artifact for sublist in artifacts for artifact in sublist]
-        return [await self.ainvoke(artifacts, **kwargs)]
-
     # Stream
 
     @final

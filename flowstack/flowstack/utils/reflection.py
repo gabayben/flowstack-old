@@ -1,6 +1,6 @@
 import inspect
 from types import NoneType
-from typing import Any, AsyncIterator, Callable, Iterator, Optional, Type, Union, get_args, get_origin
+from typing import Any, AsyncIterator, Awaitable, Callable, Iterator, Optional, Type, Union, get_args, get_origin
 
 from overrides.typing_utils import get_type_hints, issubtype
 
@@ -8,13 +8,10 @@ from flowstack.typing.types import ReturnType
 
 def get_return_type[T](function: Callable[..., ReturnType[T]]) -> Type[T]:
     annotation = get_raw_return_type(function)
-    print(annotation)
     if (
-        hasattr(annotation, '__origin__') and
-        (
-            issubclass(annotation.__origin__, Iterator) or
-            issubclass(annotation.__origin__, AsyncIterator)
-        )
+        issubtype(annotation, Awaitable) or
+        issubtype(annotation, Iterator) or
+        issubtype(annotation, AsyncIterator)
     ):
         return annotation.__args__[0]
     return annotation

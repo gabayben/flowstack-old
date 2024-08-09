@@ -49,26 +49,6 @@ class BaseChatGenerator(ChatGenerator, ABC):
     async def _ainvoke(self, prompt: ChatPrompt, **kwargs) -> BaseMessage:
         return await run_async(self._invoke, prompt, **kwargs)
 
-    # Batch
-
-    @final
-    @override
-    def batch(self, input: list[LLMInput], **kwargs) -> list[BaseMessage]:
-        pass
-
-    def _batch(self, prompts: list[ChatPrompt], **kwargs) -> list[BaseMessage]:
-        pass
-
-    # Async Batch
-
-    @final
-    @override
-    async def abatch(self, input: list[LLMInput], **kwargs) -> list[BaseMessage]:
-        pass
-
-    async def _abatch(self, prompts: list[ChatPrompt], **kwargs) -> list[BaseMessage]:
-        pass
-
     # Stream
 
     @final
