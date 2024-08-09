@@ -1,14 +1,29 @@
 import inspect
 from types import NoneType
-from typing import Any, Callable, Optional, Type, Union, get_args, get_origin
+from typing import Any, AsyncIterator, Callable, Iterator, Optional, Type, Union, get_args, get_origin
 
 from overrides.typing_utils import get_type_hints, issubtype
 
-def get_return_type[R](func: Callable[..., R]) -> Type[R]:
+from flowstack.typing.types import ReturnType
+
+def get_return_type[T](function: Callable[..., ReturnType[T]]) -> Type[T]:
+    annotation = get_raw_return_type(function)
+    print(annotation)
+    if (
+        hasattr(annotation, '__origin__') and
+        (
+            issubclass(annotation.__origin__, Iterator) or
+            issubclass(annotation.__origin__, AsyncIterator)
+        )
+    ):
+        return annotation.__args__[0]
+    return annotation
+
+def get_raw_return_type[R](func: Callable[..., R]) -> Type[R]:
     return get_type_hints(func)['return']
 
 def is_return_type[R, T](func: Callable[..., R], type_: Type[T]) -> bool:
-    return issubtype(get_return_type(func), type_)
+    return issubtype(get_raw_return_type(func), type_)
 
 def get_members[T](obj: object, type_: Type[T]) -> list[tuple[str, T]]:
     return inspect.getmembers(obj, lambda x: isinstance(x, type_))

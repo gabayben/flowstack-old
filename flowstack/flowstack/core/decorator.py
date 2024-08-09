@@ -82,14 +82,6 @@ class BaseDecorator(Component[_Input, _Output], ABC):
         return await self.bound.ainvoke(input, **self.kwargs, **kwargs)
 
     @override
-    def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return self.bound.batch(inputs, **self.kwargs, **kwargs)
-
-    @override
-    async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return await self.bound.abatch(inputs, **self.kwargs, **kwargs)
-
-    @override
     def stream(self, input: _Input, **kwargs) -> Iterator[_Output]:
         yield from self.bound.stream(input, **self.kwargs, **kwargs)
 

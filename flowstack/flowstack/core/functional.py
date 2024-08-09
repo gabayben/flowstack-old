@@ -4,6 +4,7 @@ from typing import AsyncIterator, Iterator, Optional, Type, TypeVar, override
 from pydantic import BaseModel
 
 from flowstack.core import Component, ComponentFunction
+from flowstack.utils.reflection import get_return_type
 
 _Input = TypeVar('_Input')
 _Output = TypeVar('_Output')
@@ -17,7 +18,7 @@ class Functional(Component[_Input, _Output]):
     @property
     @override
     def OutputType(self) -> Type[_Output]:
-        return self._signature.return_annotation
+        return self._output_type
 
     def __init__(
         self,
@@ -26,10 +27,10 @@ class Functional(Component[_Input, _Output]):
         input_schema: Optional[Type[BaseModel]] = None,
         output_schema: Optional[Type[BaseModel]] = None
     ):
-        self._signature = inspect.signature(function)
+        signature = inspect.signature(function)
         parameters = {
             key: value
-            for key, value in self._signature.parameters.items()
+            for key, value in signature.parameters.items()
             if value.annotation != inspect.Parameter.empty
         }
         if len(parameters) == 0:
@@ -37,6 +38,7 @@ class Functional(Component[_Input, _Output]):
                 'A function that is decorated with @component must have an input.'
             )
         self._parameter = list(parameters.values())[0]
+        self._output_type = get_return_type(function)
 
         self._function = function
         self._input_schema = input_schema
@@ -59,25 +61,9 @@ class Functional(Component[_Input, _Output]):
         pass
 
     @override
-    def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        pass
-
-    @override
-    async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        pass
-
-    @override
     def stream(self, input: _Input, **kwargs) -> Iterator[_Output]:
         pass
 
     @override
     async def astream(self, input: _Input, **kwargs) -> AsyncIterator[_Output]:
-        pass
-
-    @override
-    def transform(self, inputs: Iterator[_Input], **kwargs) -> Iterator[_Output]:
-        pass
-
-    @override
-    async def atransform(self, inputs: AsyncIterator[_Input], **kwargs) -> AsyncIterator[_Output]:
         pass

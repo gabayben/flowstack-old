@@ -15,17 +15,9 @@ class SchemaType(enum.StrEnum):
     NAMED_TUPLE = 'named_tuple'
     VALUE = 'value'
 
+ReturnType = Union[_T, Awaitable[_T], Iterator[_T], AsyncIterator[_T]]
 MetadataType = Union[dict[str, Any], list[dict[str, Any]]]
 Embedding = ndarray
-
-SyncFunction = Callable[[_Input, ...], _Output]
-AsyncFunction = Callable[[_Input, ...], Awaitable[_Output]]
-BatchFunction = Callable[[list[_Input], ...], list[_Output]]
-AsyncBatchFunction = Callable[[list[_Input], ...], Awaitable[list[_Output]]]
-StreamFunction = Callable[[_Input, ...], Iterator[_Output]]
-AsyncStreamFunction = Callable[[_Input, ...], AsyncIterator[_Output]]
-TransformFunction = Callable[[Iterator[_Input], ...], Iterator[_Output]]
-AsyncTransformFunction = Callable[[AsyncIterator[_Input], ...], AsyncIterator[_Output]]
 
 RetryStrategy = tenacity.retry_base | Callable[[tenacity.RetryCallState], bool]
 StopStrategy = tenacity.stop.stop_base | Callable[[tenacity.RetryCallState], bool]

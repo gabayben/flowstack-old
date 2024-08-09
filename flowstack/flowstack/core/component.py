@@ -2,33 +2,25 @@ from abc import ABC, abstractmethod
 from typing import (
     Any,
     AsyncIterator,
-    Iterator,
+    Callable, Iterator,
     Mapping,
     Optional,
     Sequence,
     Type,
     TypeVar,
     Union,
-    override
+    final, override
 )
 
 from langchain_core.runnables import Runnable
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from flowstack.typing import (
     AfterRetryFailure,
-    AsyncBatchFunction,
-    AsyncFunction,
-    AsyncStreamFunction,
-    AsyncTransformFunction,
-    BatchFunction,
     DrawableGraph,
     RetryStrategy,
-    Serializable,
+    ReturnType, Serializable,
     StopStrategy,
-    StreamFunction,
-    SyncFunction,
-    TransformFunction,
     WaitStrategy
 )
 from flowstack.utils.reflection import get_type_arg
@@ -38,11 +30,6 @@ _Output = TypeVar('_Output')
 _Other = TypeVar('_Other')
 
 class Component(Serializable, Runnable[_Input, _Output], ABC):
-    model_config = ConfigDict(
-        extra='allow',
-        arbitrary_types_allowed=True
-    )
-
     @property
     @override
     def InputType(self) -> Type[_Input]:
@@ -161,10 +148,12 @@ class Component(Serializable, Runnable[_Input, _Output], ABC):
     async def ainvoke(self, input: _Input, **kwargs) -> _Output:
         return super().ainvoke(input, **kwargs)
 
+    @final
     @override
     def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
         return super().batch(inputs, **kwargs)
 
+    @final
     @override
     async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
         return await super().abatch(inputs, **kwargs)
@@ -230,14 +219,6 @@ class _CoercedRunnable(Component[_Input, _Output]):
         return await self.bound.ainvoke(input, **kwargs)
 
     @override
-    def batch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return self.bound.batch(inputs, **kwargs)
-
-    @override
-    async def abatch(self, inputs: list[_Input], **kwargs) -> list[_Output]:
-        return await self.bound.abatch(inputs, **kwargs)
-
-    @override
     def stream(self, input: _Input, **kwargs) -> Iterator[_Output]:
         yield from self.bound.stream(input, **kwargs)
 
@@ -255,16 +236,7 @@ class _CoercedRunnable(Component[_Input, _Output]):
         async for chunk in self.bound.atransform(inputs, **kwargs):
             yield chunk
 
-ComponentFunction = Union[
-    SyncFunction,
-    AsyncFunction,
-    BatchFunction,
-    AsyncBatchFunction,
-    StreamFunction,
-    AsyncStreamFunction,
-    TransformFunction,
-    AsyncTransformFunction
-]
+ComponentFunction = Callable[[_Input, ...], ReturnType[_Output]]
 ComponentLike = Union[
     Runnable[_Input, _Output],
     Component[_Input, _Output],
